@@ -67,3 +67,17 @@ docs/docs/**/*.json*
 
 test_before_pypi/
 .github/.internal_dspyai/dist/
+
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.prof
+vendor/
+coverage.out
+coverage.html
+.dspy_cache/

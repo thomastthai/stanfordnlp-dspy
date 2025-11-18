@@ -3,7 +3,7 @@ package teleprompt
 
 import (
 	"context"
-	
+
 	"github.com/stanfordnlp/dspy/internal/primitives"
 )
 
@@ -13,7 +13,7 @@ import (
 type Teleprompt interface {
 	// Compile optimizes a module using the training set and metric.
 	Compile(ctx context.Context, module primitives.Module, trainset []*primitives.Example, metric interface{}) (primitives.Module, error)
-	
+
 	// Name returns the optimizer name.
 	Name() string
 }

@@ -7,10 +7,10 @@ import "context"
 type Retriever interface {
 	// Retrieve returns the top-k most relevant documents for the query.
 	Retrieve(ctx context.Context, query string, k int) ([]string, error)
-	
+
 	// RetrieveWithScores returns documents with their relevance scores.
 	RetrieveWithScores(ctx context.Context, query string, k int) ([]Document, error)
-	
+
 	// Name returns the retriever name.
 	Name() string
 }
@@ -19,13 +19,13 @@ type Retriever interface {
 type Document struct {
 	// Content is the document text
 	Content string
-	
+
 	// Score is the relevance score
 	Score float64
-	
+
 	// ID is the document identifier
 	ID string
-	
+
 	// Metadata contains additional document metadata
 	Metadata map[string]interface{}
 }

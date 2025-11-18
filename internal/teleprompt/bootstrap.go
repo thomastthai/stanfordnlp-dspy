@@ -3,23 +3,23 @@ package teleprompt
 import (
 	"context"
 	"fmt"
-	
+
 	"github.com/stanfordnlp/dspy/internal/primitives"
 )
 
 // BootstrapFewShot optimizes a module by selecting effective demonstrations.
 type BootstrapFewShot struct {
 	*BaseTeleprompt
-	
+
 	// MaxBootstrappedDemos is the maximum number of demos to bootstrap
 	MaxBootstrappedDemos int
-	
+
 	// MaxLabeledDemos is the maximum number of labeled demos to use
 	MaxLabeledDemos int
-	
+
 	// MaxRounds is the maximum number of bootstrapping rounds
 	MaxRounds int
-	
+
 	// Teacher is the module to use for bootstrapping (if nil, uses the student)
 	Teacher primitives.Module
 }
@@ -57,18 +57,18 @@ func (b *BootstrapFewShot) Compile(ctx context.Context, module primitives.Module
 	if len(trainset) == 0 {
 		return nil, fmt.Errorf("trainset is empty")
 	}
-	
+
 	// TODO: Implement actual bootstrapping algorithm
 	// 1. Use teacher (or student) to generate predictions on trainset
 	// 2. Select high-quality predictions as demonstrations
 	// 3. Update student's demos parameter
 	// 4. Repeat for MaxRounds
-	
+
 	// For now, just return a copy of the module
 	optimizedModule := module.Copy()
-	
+
 	// TODO: Mark as compiled when we have a proper way to do so
 	// For now, the optimizer returns a working copy
-	
+
 	return optimizedModule, nil
 }

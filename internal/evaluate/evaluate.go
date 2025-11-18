@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	
+
 	"github.com/stanfordnlp/dspy/internal/primitives"
 )
 
@@ -15,16 +15,16 @@ type Metric func(example *primitives.Example, prediction *primitives.Prediction)
 
 // Evaluator evaluates a module on a dataset using a metric.
 type Evaluator struct {
-	metric      Metric
-	numThreads  int
+	metric          Metric
+	numThreads      int
 	displayProgress bool
 }
 
 // NewEvaluator creates a new evaluator.
 func NewEvaluator(metric Metric) *Evaluator {
 	return &Evaluator{
-		metric:      metric,
-		numThreads:  1,
+		metric:          metric,
+		numThreads:      1,
 		displayProgress: true,
 	}
 }
@@ -45,13 +45,13 @@ func (e *Evaluator) WithDisplayProgress(display bool) *Evaluator {
 type EvaluationResult struct {
 	// TotalScore is the sum of all scores
 	TotalScore float64
-	
+
 	// Count is the number of examples evaluated
 	Count int
-	
+
 	// AverageScore is the average score across all examples
 	AverageScore float64
-	
+
 	// Scores contains individual scores for each example
 	Scores []float64
 }
@@ -61,11 +61,11 @@ func (e *Evaluator) Evaluate(ctx context.Context, module primitives.Module, data
 	if len(dataset) == 0 {
 		return nil, fmt.Errorf("dataset is empty")
 	}
-	
+
 	result := &EvaluationResult{
 		Scores: make([]float64, len(dataset)),
 	}
-	
+
 	// Sequential evaluation for now
 	// TODO: Implement parallel evaluation with numThreads
 	for i, example := range dataset {
@@ -74,20 +74,20 @@ func (e *Evaluator) Evaluate(ctx context.Context, module primitives.Module, data
 		if err != nil {
 			return nil, fmt.Errorf("forward pass failed on example %d: %w", i, err)
 		}
-		
+
 		// Compute metric
 		score := e.metric(example, prediction)
 		result.Scores[i] = score
 		result.TotalScore += score
 		result.Count++
-		
+
 		if e.displayProgress && (i+1)%10 == 0 {
 			fmt.Printf("Evaluated %d/%d examples\n", i+1, len(dataset))
 		}
 	}
-	
+
 	result.AverageScore = result.TotalScore / float64(result.Count)
-	
+
 	return result, nil
 }
 
@@ -96,26 +96,26 @@ func (e *Evaluator) EvaluateParallel(ctx context.Context, module primitives.Modu
 	if len(dataset) == 0 {
 		return nil, fmt.Errorf("dataset is empty")
 	}
-	
+
 	result := &EvaluationResult{
 		Scores: make([]float64, len(dataset)),
 	}
-	
+
 	// Create worker pool
 	type job struct {
 		index   int
 		example *primitives.Example
 	}
-	
+
 	type jobResult struct {
 		index int
 		score float64
 		err   error
 	}
-	
+
 	jobs := make(chan job, len(dataset))
 	results := make(chan jobResult, len(dataset))
-	
+
 	// Start workers
 	var wg sync.WaitGroup
 	for i := 0; i < e.numThreads; i++ {
@@ -129,26 +129,26 @@ func (e *Evaluator) EvaluateParallel(ctx context.Context, module primitives.Modu
 					results <- jobResult{index: j.index, err: err}
 					continue
 				}
-				
+
 				// Compute metric
 				score := e.metric(j.example, prediction)
 				results <- jobResult{index: j.index, score: score}
 			}
 		}()
 	}
-	
+
 	// Send jobs
 	for i, example := range dataset {
 		jobs <- job{index: i, example: example}
 	}
 	close(jobs)
-	
+
 	// Wait for workers
 	go func() {
 		wg.Wait()
 		close(results)
 	}()
-	
+
 	// Collect results
 	for res := range results {
 		if res.err != nil {
@@ -158,8 +158,8 @@ func (e *Evaluator) EvaluateParallel(ctx context.Context, module primitives.Modu
 		result.TotalScore += res.score
 		result.Count++
 	}
-	
+
 	result.AverageScore = result.TotalScore / float64(result.Count)
-	
+
 	return result, nil
 }

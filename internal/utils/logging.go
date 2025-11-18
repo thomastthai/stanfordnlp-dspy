@@ -24,12 +24,12 @@ const (
 
 // Logger provides structured logging for DSPy.
 type Logger struct {
-	level  LogLevel
-	debug  *log.Logger
-	info   *log.Logger
-	warn   *log.Logger
-	error  *log.Logger
-	mu     sync.RWMutex
+	level LogLevel
+	debug *log.Logger
+	info  *log.Logger
+	warn  *log.Logger
+	error *log.Logger
+	mu    sync.RWMutex
 }
 
 var (

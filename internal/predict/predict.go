@@ -4,7 +4,7 @@ package predict
 import (
 	"context"
 	"fmt"
-	
+
 	"github.com/stanfordnlp/dspy/internal/primitives"
 	"github.com/stanfordnlp/dspy/internal/signatures"
 )
@@ -12,13 +12,13 @@ import (
 // Predict is the basic prediction module that calls an LM with a signature.
 type Predict struct {
 	*primitives.BaseModule
-	
+
 	// Signature defines the input and output structure
 	Signature *signatures.Signature
-	
+
 	// Demos contains few-shot examples
 	Demos *primitives.Parameter
-	
+
 	// Config contains additional configuration
 	Config map[string]interface{}
 }
@@ -28,7 +28,7 @@ type Predict struct {
 func New(sig interface{}) (*Predict, error) {
 	var signature *signatures.Signature
 	var err error
-	
+
 	switch s := sig.(type) {
 	case string:
 		signature, err = signatures.NewSignature(s)
@@ -40,7 +40,7 @@ func New(sig interface{}) (*Predict, error) {
 	default:
 		return nil, fmt.Errorf("signature must be string or *Signature, got %T", sig)
 	}
-	
+
 	return &Predict{
 		BaseModule: primitives.NewBaseModule(),
 		Signature:  signature,
@@ -55,14 +55,19 @@ func (p *Predict) Forward(ctx context.Context, inputs map[string]interface{}) (*
 	if err := p.validateInputs(inputs); err != nil {
 		return nil, err
 	}
-	
-	// TODO: Implement actual LM call
+
+	// TODO: Get LM from context/settings
+	// TODO: Get adapter from context/settings
+	// TODO: Format request using adapter
+	// TODO: Call LM
+	// TODO: Parse response using adapter
+
 	// For now, return a dummy prediction
 	output := make(map[string]interface{})
 	for _, field := range p.Signature.OutputFields {
 		output[field.Name] = fmt.Sprintf("[predicted %s]", field.Name)
 	}
-	
+
 	return primitives.NewPrediction(output), nil
 }
 
@@ -86,12 +91,12 @@ func (p *Predict) Copy() primitives.Module {
 		Demos:      primitives.NewParameter(p.Demos.Value()),
 		Config:     make(map[string]interface{}),
 	}
-	
+
 	// Copy config
 	for k, v := range p.Config {
 		newPredict.Config[k] = v
 	}
-	
+
 	return newPredict
 }
 

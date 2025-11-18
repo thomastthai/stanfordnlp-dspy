@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	
+
 	"github.com/stanfordnlp/dspy/pkg/dspy"
 )
 
@@ -12,7 +12,7 @@ func main() {
 		fmt.Printf("DSPy-Go v%s (Python compatible: v%s)\n", dspy.Version, dspy.PythonCompatVersion)
 		return
 	}
-	
+
 	fmt.Println("DSPy-Go CLI")
 	fmt.Println("===========")
 	fmt.Printf("Version: %s\n", dspy.Version)

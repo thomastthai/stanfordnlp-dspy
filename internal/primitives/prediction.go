@@ -10,7 +10,7 @@ import (
 type Prediction struct {
 	// fields contains the predicted output fields
 	fields map[string]interface{}
-	
+
 	// metadata contains additional information (trace, reasoning, etc.)
 	metadata map[string]interface{}
 }
@@ -20,7 +20,7 @@ func NewPrediction(fields map[string]interface{}) *Prediction {
 	if fields == nil {
 		fields = make(map[string]interface{})
 	}
-	
+
 	return &Prediction{
 		fields:   fields,
 		metadata: make(map[string]interface{}),
@@ -82,19 +82,19 @@ func (p *Prediction) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return fmt.Errorf("failed to unmarshal prediction: %w", err)
 	}
-	
+
 	if fields, ok := raw["fields"].(map[string]interface{}); ok {
 		p.fields = fields
 	} else {
 		p.fields = make(map[string]interface{})
 	}
-	
+
 	if metadata, ok := raw["metadata"].(map[string]interface{}); ok {
 		p.metadata = metadata
 	} else {
 		p.metadata = make(map[string]interface{})
 	}
-	
+
 	return nil
 }
 

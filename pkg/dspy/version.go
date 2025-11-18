@@ -6,7 +6,7 @@ package dspy
 const (
 	// Version is the semantic version of DSPy-Go
 	Version = "0.1.0"
-	
+
 	// PythonCompatVersion is the Python DSPy version this implementation is compatible with
 	PythonCompatVersion = "3.1.0"
 )

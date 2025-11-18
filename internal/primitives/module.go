@@ -9,19 +9,19 @@ type Module interface {
 	// Forward executes the module with the given inputs.
 	// Returns a Prediction containing the outputs.
 	Forward(ctx context.Context, inputs map[string]interface{}) (*Prediction, error)
-	
+
 	// NamedParameters returns all parameters in this module and its submodules.
 	NamedParameters() []NamedParameter
-	
+
 	// Reset resets the module's parameters to their initial state.
 	Reset()
-	
+
 	// Copy creates a deep copy of the module.
 	Copy() Module
-	
+
 	// Save serializes the module to JSON format.
 	Save() ([]byte, error)
-	
+
 	// Load deserializes the module from JSON format.
 	Load(data []byte) error
 }

@@ -6,12 +6,12 @@ import (
 
 func TestParseSignature(t *testing.T) {
 	tests := []struct {
-		name          string
-		input         string
-		wantErr       bool
-		wantInputs    int
-		wantOutputs   int
-		checkFields   func(*testing.T, *Signature)
+		name        string
+		input       string
+		wantErr     bool
+		wantInputs  int
+		wantOutputs int
+		checkFields func(*testing.T, *Signature)
 	}{
 		{
 			name:        "simple signature",
@@ -86,30 +86,30 @@ func TestParseSignature(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			sig, err := ParseSignature(tt.input)
-			
+
 			if tt.wantErr {
 				if err == nil {
 					t.Error("expected error, got nil")
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			
+
 			if len(sig.InputFields) != tt.wantInputs {
 				t.Errorf("expected %d inputs, got %d", tt.wantInputs, len(sig.InputFields))
 			}
-			
+
 			if len(sig.OutputFields) != tt.wantOutputs {
 				t.Errorf("expected %d outputs, got %d", tt.wantOutputs, len(sig.OutputFields))
 			}
-			
+
 			if tt.checkFields != nil {
 				tt.checkFields(t, sig)
 			}
@@ -122,7 +122,7 @@ func TestSignature_String(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to parse signature: %v", err)
 	}
-	
+
 	s := sig.String()
 	expected := "question, context -> answer"
 	if s != expected {
@@ -172,7 +172,7 @@ func TestSignature_Validate(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.sig.Validate()

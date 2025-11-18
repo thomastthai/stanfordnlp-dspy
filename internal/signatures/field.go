@@ -4,22 +4,22 @@ package signatures
 type Field struct {
 	// Name is the field name
 	Name string
-	
+
 	// Type is the field type (string, int, etc.)
 	Type string
-	
+
 	// Description provides context about what this field contains
 	Description string
-	
+
 	// Prefix is the prefix to use when formatting this field in prompts
 	Prefix string
-	
+
 	// IsInput indicates if this is an input field (vs output)
 	IsInput bool
-	
+
 	// Required indicates if this field is required
 	Required bool
-	
+
 	// Format specifies the expected format (e.g., "json", "xml")
 	Format string
 }

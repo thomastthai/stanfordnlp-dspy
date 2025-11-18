@@ -10,13 +10,13 @@ import (
 type Signature struct {
 	// Name is an optional name for this signature
 	Name string
-	
+
 	// Instructions provide guidance to the LM about the task
 	Instructions string
-	
+
 	// InputFields are the input fields for this signature
 	InputFields []*Field
-	
+
 	// OutputFields are the output fields for this signature
 	OutputFields []*Field
 }
@@ -109,7 +109,7 @@ func (s *Signature) Validate() error {
 	if len(s.OutputFields) == 0 {
 		return fmt.Errorf("signature must have at least one output field")
 	}
-	
+
 	// Check for duplicate field names
 	seen := make(map[string]bool)
 	for _, field := range s.InputFields {
@@ -124,6 +124,6 @@ func (s *Signature) Validate() error {
 		}
 		seen[field.Name] = true
 	}
-	
+
 	return nil
 }

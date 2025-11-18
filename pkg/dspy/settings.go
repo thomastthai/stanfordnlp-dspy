@@ -9,37 +9,37 @@ import (
 type Settings struct {
 	// LM is the default language model to use
 	LM interface{}
-	
+
 	// RM is the default retrieval model to use
 	RM interface{}
-	
+
 	// Adapter is the format adapter to use
 	Adapter string
-	
+
 	// Temperature for sampling
 	Temperature float64
-	
+
 	// MaxTokens is the maximum number of tokens to generate
 	MaxTokens int
-	
+
 	// CacheDir is the directory for disk caching
 	CacheDir string
-	
+
 	// EnableCache enables/disables caching
 	EnableCache bool
-	
+
 	// Timeout for LM requests
 	Timeout time.Duration
-	
+
 	// MaxRetries for failed requests
 	MaxRetries int
-	
+
 	// Trace enables detailed execution tracing
 	Trace bool
-	
+
 	// Experimental features
 	Experimental map[string]interface{}
-	
+
 	mu sync.RWMutex
 }
 
@@ -61,12 +61,12 @@ func NewSettings() *Settings {
 func (s *Settings) Copy() *Settings {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	
+
 	exp := make(map[string]interface{}, len(s.Experimental))
 	for k, v := range s.Experimental {
 		exp[k] = v
 	}
-	
+
 	return &Settings{
 		LM:           s.LM,
 		RM:           s.RM,

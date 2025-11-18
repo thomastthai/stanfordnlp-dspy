@@ -10,10 +10,10 @@ import (
 type Example struct {
 	// inputs contains the input fields
 	inputs map[string]interface{}
-	
+
 	// outputs contains the expected output fields (labels)
 	outputs map[string]interface{}
-	
+
 	// metadata contains additional information about the example
 	metadata map[string]interface{}
 }
@@ -26,7 +26,7 @@ func NewExample(inputs, outputs map[string]interface{}) *Example {
 	if outputs == nil {
 		outputs = make(map[string]interface{})
 	}
-	
+
 	return &Example{
 		inputs:   inputs,
 		outputs:  outputs,
@@ -73,7 +73,7 @@ func (e *Example) With(fields map[string]interface{}) *Example {
 		outputs:  make(map[string]interface{}),
 		metadata: make(map[string]interface{}),
 	}
-	
+
 	// Copy existing fields
 	for k, v := range e.inputs {
 		newExample.inputs[k] = v
@@ -84,12 +84,12 @@ func (e *Example) With(fields map[string]interface{}) *Example {
 	for k, v := range e.metadata {
 		newExample.metadata[k] = v
 	}
-	
+
 	// Add new fields
 	for k, v := range fields {
 		newExample.Set(k, v)
 	}
-	
+
 	return newExample
 }
 
@@ -136,25 +136,25 @@ func (e *Example) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return fmt.Errorf("failed to unmarshal example: %w", err)
 	}
-	
+
 	if inputs, ok := raw["inputs"].(map[string]interface{}); ok {
 		e.inputs = inputs
 	} else {
 		e.inputs = make(map[string]interface{})
 	}
-	
+
 	if outputs, ok := raw["outputs"].(map[string]interface{}); ok {
 		e.outputs = outputs
 	} else {
 		e.outputs = make(map[string]interface{})
 	}
-	
+
 	if metadata, ok := raw["metadata"].(map[string]interface{}); ok {
 		e.metadata = metadata
 	} else {
 		e.metadata = make(map[string]interface{})
 	}
-	
+
 	return nil
 }
 

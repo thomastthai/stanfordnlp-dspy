@@ -12,7 +12,7 @@ import (
 type BaseModule struct {
 	// compiled indicates if the module has been compiled/optimized
 	compiled bool
-	
+
 	// mu protects concurrent access to the module
 	mu sync.RWMutex
 }
@@ -29,13 +29,13 @@ func NewBaseModule() *BaseModule {
 func (m *BaseModule) NamedParameters() []NamedParameter {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	visited := make(map[uintptr]bool)
 	var parameters []NamedParameter
-	
+
 	// Use reflection to find all Parameter fields
 	m.collectParameters("", reflect.ValueOf(m).Elem(), visited, &parameters)
-	
+
 	return parameters
 }
 
@@ -44,23 +44,23 @@ func (m *BaseModule) collectParameters(prefix string, v reflect.Value, visited m
 	if !v.IsValid() {
 		return
 	}
-	
+
 	// Handle pointers
 	if v.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return
 		}
-		
+
 		// Check if we've already visited this pointer
 		ptr := v.Pointer()
 		if visited[ptr] {
 			return
 		}
 		visited[ptr] = true
-		
+
 		v = v.Elem()
 	}
-	
+
 	// Check if this is a Parameter
 	if param, ok := v.Interface().(*Parameter); ok {
 		name := prefix
@@ -73,7 +73,7 @@ func (m *BaseModule) collectParameters(prefix string, v reflect.Value, visited m
 		})
 		return
 	}
-	
+
 	// Check if this is a Module
 	if mod, ok := v.Interface().(Module); ok {
 		// Collect parameters from submodule
@@ -90,29 +90,29 @@ func (m *BaseModule) collectParameters(prefix string, v reflect.Value, visited m
 		}
 		return
 	}
-	
+
 	// Handle structs
 	if v.Kind() == reflect.Struct {
 		t := v.Type()
 		for i := 0; i < v.NumField(); i++ {
 			field := v.Field(i)
 			fieldType := t.Field(i)
-			
+
 			// Skip unexported fields
 			if !field.CanInterface() {
 				continue
 			}
-			
+
 			fieldName := fieldType.Name
 			if prefix != "" {
 				fieldName = prefix + "." + fieldName
 			}
-			
+
 			m.collectParameters(fieldName, field, visited, params)
 		}
 		return
 	}
-	
+
 	// Handle slices and arrays
 	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
 		for i := 0; i < v.Len(); i++ {
@@ -121,7 +121,7 @@ func (m *BaseModule) collectParameters(prefix string, v reflect.Value, visited m
 		}
 		return
 	}
-	
+
 	// Handle maps
 	if v.Kind() == reflect.Map {
 		for _, key := range v.MapKeys() {
@@ -136,7 +136,7 @@ func (m *BaseModule) collectParameters(prefix string, v reflect.Value, visited m
 func (m *BaseModule) Reset() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	for _, np := range m.NamedParameters() {
 		np.Param.Reset()
 	}
@@ -160,16 +160,16 @@ func (m *BaseModule) IsCompiled() bool {
 func (m *BaseModule) Save() ([]byte, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	// Collect all parameters
 	params := m.NamedParameters()
-	
+
 	// Create a map of parameter names to values
 	paramMap := make(map[string]interface{})
 	for _, np := range params {
 		paramMap[np.Name] = np.Param.Value()
 	}
-	
+
 	// Serialize to JSON
 	return json.Marshal(map[string]interface{}{
 		"parameters": paramMap,
@@ -181,29 +181,29 @@ func (m *BaseModule) Save() ([]byte, error) {
 func (m *BaseModule) Load(data []byte) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	var state map[string]interface{}
 	if err := json.Unmarshal(data, &state); err != nil {
 		return fmt.Errorf("failed to unmarshal module state: %w", err)
 	}
-	
+
 	// Load parameters
 	paramMap, ok := state["parameters"].(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("invalid parameters in state")
 	}
-	
+
 	params := m.NamedParameters()
 	for _, np := range params {
 		if value, exists := paramMap[np.Name]; exists {
 			np.Param.SetValue(value)
 		}
 	}
-	
+
 	// Load compiled flag
 	if compiled, ok := state["compiled"].(bool); ok {
 		m.compiled = compiled
 	}
-	
+
 	return nil
 }

@@ -179,9 +179,6 @@ func (m *BaseModule) Save() ([]byte, error) {
 
 // Load deserializes the module from JSON format.
 func (m *BaseModule) Load(data []byte) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	var state map[string]interface{}
 	if err := json.Unmarshal(data, &state); err != nil {
 		return fmt.Errorf("failed to unmarshal module state: %w", err)
@@ -193,17 +190,22 @@ func (m *BaseModule) Load(data []byte) error {
 		return fmt.Errorf("invalid parameters in state")
 	}
 
+	// Get parameters without holding the lock
 	params := m.NamedParameters()
+	
+	// Now update values
 	for _, np := range params {
 		if value, exists := paramMap[np.Name]; exists {
 			np.Param.SetValue(value)
 		}
 	}
 
-	// Load compiled flag
+	// Update compiled flag
+	m.mu.Lock()
 	if compiled, ok := state["compiled"].(bool); ok {
 		m.compiled = compiled
 	}
+	m.mu.Unlock()
 
 	return nil
 }

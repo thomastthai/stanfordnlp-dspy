@@ -182,7 +182,7 @@ func (c *COPRO) evaluateCandidate(ctx context.Context, program primitives.Module
 
 // InstructionCandidate represents a candidate instruction variation.
 type InstructionCandidate struct {
-	Instruction         string
+	Instruction          string
 	PrefixForOutputField string
-	Score               float64
+	Score                float64
 }

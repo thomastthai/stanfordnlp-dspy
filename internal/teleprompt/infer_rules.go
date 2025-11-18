@@ -31,7 +31,7 @@ type InferRules struct {
 // NewInferRules creates a new InferRules optimizer.
 func NewInferRules(metric interface{}) *InferRules {
 	bootstrap := NewBootstrapFewShot(4)
-	
+
 	return &InferRules{
 		BootstrapFewShot: bootstrap,
 		NumCandidates:    10,

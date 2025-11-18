@@ -182,9 +182,9 @@ func (a *AvatarOptimizer) generateTrajectory(ctx context.Context, actor primitiv
 
 		// Store in trajectory
 		trajectory = append(trajectory, map[string]interface{}{
-			"state":      example.Inputs(),
-			"action":     prediction,
-			"reward":     reward,
+			"state":  example.Inputs(),
+			"action": prediction,
+			"reward": reward,
 		})
 	}
 

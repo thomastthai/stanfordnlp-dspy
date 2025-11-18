@@ -76,11 +76,11 @@ func (e *Ensemble) Compile(ctx context.Context, module primitives.Module, trains
 type EnsembledModule struct {
 	*primitives.BaseModule
 
-	programs  []primitives.Module
-	reduceFn  func([]*primitives.Prediction) *primitives.Prediction
-	size      *int
-	seed      int64
-	mu        sync.RWMutex
+	programs []primitives.Module
+	reduceFn func([]*primitives.Prediction) *primitives.Prediction
+	size     *int
+	seed     int64
+	mu       sync.RWMutex
 }
 
 // NewEnsembledModule creates a new ensembled module.

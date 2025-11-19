@@ -6,50 +6,26 @@ import (
 )
 
 func TestDummyLM(t *testing.T) {
-	responses := []map[string]interface{}{
-		{"answer": "Paris"},
-		{"answer": "London"},
-	}
-
-	lm := NewDummyLM(DummyLMOptions{
-		Responses: responses,
-	})
-
-	ctx := context.Background()
+	responses := []string{"Paris", "London"}
+	lm := NewDummyLM(responses)
 
 	// First call
-	resp1, err := lm.Call(ctx, []map[string]interface{}{
-		{"role": "user", "content": "What is the capital of France?"},
-	})
-	if err != nil {
-		t.Fatalf("Call() error = %v", err)
-	}
-	if resp1["answer"] != "Paris" {
-		t.Errorf("Expected answer 'Paris', got '%v'", resp1["answer"])
+	resp1 := lm.GetResponse("What is the capital of France?")
+	if resp1 != "Paris" {
+		t.Errorf("Expected response 'Paris', got '%v'", resp1)
 	}
 
 	// Second call
-	resp2, err := lm.Call(ctx, []map[string]interface{}{
-		{"role": "user", "content": "What is the capital of England?"},
-	})
-	if err != nil {
-		t.Fatalf("Call() error = %v", err)
-	}
-	if resp2["answer"] != "London" {
-		t.Errorf("Expected answer 'London', got '%v'", resp2["answer"])
-	}
-
-	// Check history
-	history := lm.GetHistory()
-	if len(history) != 2 {
-		t.Errorf("Expected 2 history entries, got %d", len(history))
+	resp2 := lm.GetResponse("What is the capital of England?")
+	if resp2 != "London" {
+		t.Errorf("Expected response 'London', got '%v'", resp2)
 	}
 
 	// Reset and verify
 	lm.Reset()
-	history = lm.GetHistory()
-	if len(history) != 0 {
-		t.Errorf("Expected 0 history entries after reset, got %d", len(history))
+	resp3 := lm.GetResponse("test")
+	if resp3 != "Paris" {
+		t.Errorf("Expected 'Paris' after reset, got '%v'", resp3)
 	}
 }
 

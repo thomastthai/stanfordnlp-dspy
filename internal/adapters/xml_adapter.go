@@ -211,7 +211,7 @@ func (a *XMLAdapter) parseGenericXML(xmlContent string) (map[string]interface{},
 	// Try to parse as generic XML structure
 	type GenericXML struct {
 		XMLName xml.Name
-		Content string `xml:",chardata"`
+		Content string       `xml:",chardata"`
 		Nodes   []GenericXML `xml:",any"`
 	}
 

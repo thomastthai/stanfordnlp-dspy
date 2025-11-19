@@ -124,6 +124,28 @@ func inferProvider(model string) string {
 		return "anthropic"
 	}
 
+	// Google Gemini models
+	if strings.HasPrefix(model, "gemini-") {
+		return "gemini"
+	}
+
+	// AWS Bedrock models (prefixed with provider name)
+	if strings.Contains(model, "anthropic.") || strings.Contains(model, "amazon.titan") ||
+		strings.Contains(model, "meta.llama") || strings.Contains(model, "ai21.") ||
+		strings.Contains(model, "cohere.") {
+		return "bedrock"
+	}
+
+	// Databricks models
+	if strings.HasPrefix(model, "databricks-") {
+		return "databricks"
+	}
+
+	// Azure OpenAI models (check for common Azure deployment patterns)
+	if strings.Contains(model, "gpt-35") {
+		return "azure"
+	}
+
 	// Default to openai
 	return "openai"
 }

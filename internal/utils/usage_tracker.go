@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 )
 
 // UsageEntry represents a single usage entry for an LM call.
@@ -15,9 +16,7 @@ type UsageEntry struct {
 	EstimatedCost    float64                `json:"estimated_cost,omitempty"`
 	Model            string                 `json:"model,omitempty"`
 	Metadata         map[string]interface{} `json:"metadata,omitempty"`
-	"sync"
-	"time"
-)
+}
 
 // UsageStats represents usage statistics.
 type UsageStats struct {
@@ -32,8 +31,7 @@ type UsageStats struct {
 
 // UsageTracker tracks token usage and costs for LM calls.
 type UsageTracker struct {
-	usageByModel map[string][]*UsageEntry
-	mu           sync.RWMutex
+	usageByModel     map[string][]*UsageEntry
 	mu               sync.RWMutex
 	totalTokens      int
 	promptTokens     int
@@ -127,14 +125,6 @@ func (ut *UsageTracker) GetGrandTotal() *UsageEntry {
 	}
 	
 	return grand
-}
-
-// Reset resets all usage tracking.
-func (ut *UsageTracker) Reset() {
-	ut.mu.Lock()
-	defer ut.mu.Unlock()
-	
-	ut.usageByModel = make(map[string][]*UsageEntry)
 }
 
 // Export exports usage statistics to JSON.
@@ -269,10 +259,6 @@ func (ut *UsageTracker) UpdateCosts(pricing map[string]ModelPricing) {
 				entry.EstimatedCost = EstimateCost(entry, modelPricing)
 			}
 		}
-	}
-}
-		startTime: time.Now(),
-		history:   make([]UsageRecord, 0),
 	}
 }
 

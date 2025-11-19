@@ -288,16 +288,3 @@ func (s *Stream) Tee() (*Stream, *Stream) {
 	
 	return out1, out2
 }
-			if !ok {
-				return
-			}
-			if predicate(value) {
-				if err := output.Send(value); err != nil {
-					return
-				}
-			}
-		}
-	}()
-
-	return output
-}

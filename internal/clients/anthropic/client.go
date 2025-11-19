@@ -80,6 +80,8 @@ type AnthropicRequest struct {
 	TopP          float64            `json:"top_p,omitempty"`
 	StopSequences []string           `json:"stop_sequences,omitempty"`
 	System        string             `json:"system,omitempty"`
+	Stream        bool               `json:"stream,omitempty"`
+	Tools         []Tool             `json:"tools,omitempty"`
 }
 
 // AnthropicResponse represents an Anthropic API response.

@@ -134,7 +134,7 @@ func ParseMultipleCodeBlocks(text string) ([]*CodeBlock, error) {
 
 	// Find all code blocks
 	parts := strings.Split(text, "```")
-	
+
 	// Code blocks are at odd indices (1, 3, 5, ...)
 	for i := 1; i < len(parts); i += 2 {
 		if i < len(parts) {

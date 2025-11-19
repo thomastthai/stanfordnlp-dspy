@@ -329,7 +329,110 @@ Avoid using `JSONAdapter` if you are:
 
 - Using a model that does not natively support structured output, such as a small open-source model hosted on Ollama.
 
+### BAMLAdapter
+
+**BAMLAdapter** extends `JSONAdapter` with BAML-inspired formatting (Behavioral Adaptation Markup Language) that creates more human-readable, token-efficient schema representations for complex nested structures. It includes field descriptions as comments in the schema, providing valuable context for the LM to understand expected outputs.
+
+#### Format Structure
+
+BAMLAdapter uses a simplified schema format that's easier for models to understand:
+
+```python
+import dspy
+from pydantic import BaseModel, Field
+
+dspy.configure(lm=dspy.LM("openai/gpt-4o-mini"), adapter=dspy.BAMLAdapter())
+
+class Address(BaseModel):
+    street: str
+    city: str
+    country: str
+
+class Person(BaseModel):
+    name: str = Field(description="Full name of the person")
+    age: int
+    address: Address
+
+class ExtractPerson(dspy.Signature):
+    """Extract person information from text."""
+    text: str = dspy.InputField()
+    person: Person = dspy.OutputField()
+
+predict = dspy.Predict(ExtractPerson)
+result = predict(text="John Doe, 45 years old, lives at 123 Main St, Anytown, USA")
+```
+
+The system message will include a simplified schema representation with comments explaining each field, making it easier for the model to generate correctly structured output.
+
+#### When to Use BAMLAdapter
+
+`BAMLAdapter` is ideal when you need:
+
+- **Complex nested structures**: Better handling of Pydantic models with nested fields.
+- **Improved model understanding**: The simplified schema with comments helps models generate more accurate structured outputs.
+- **Token efficiency**: More compact schema representation compared to full JSON schema.
+
+#### When Not to Use BAMLAdapter
+
+Avoid using `BAMLAdapter` if:
+
+- You're working with simple flat structures where standard `JSONAdapter` is sufficient.
+- The model doesn't support JSON structured output.
+
+### TwoStepAdapter
+
+**TwoStepAdapter** implements a two-phase approach to structured output extraction. It's particularly useful with reasoning models (like o1, o3) that excel at natural language reasoning but may struggle with strict structured output formats.
+
+#### How It Works
+
+1. **Phase 1**: Uses a natural language prompt with the main LM, allowing it to reason freely without structural constraints.
+2. **Phase 2**: Uses a smaller, cheaper extraction model (with `ChatAdapter`) to parse the free-form response into structured data.
+
+#### Format Structure
+
+```python
+import dspy
+
+# Configure main reasoning model and extraction model
+main_lm = dspy.LM("openai/o3-mini", max_tokens=16000)
+extraction_lm = dspy.LM("openai/gpt-4o-mini")
+
+dspy.configure(lm=main_lm, adapter=dspy.TwoStepAdapter(extraction_lm))
+
+class ComplexReasoning(dspy.Signature):
+    """Solve a complex reasoning problem."""
+    problem: str = dspy.InputField()
+    solution: str = dspy.OutputField()
+    reasoning_steps: str = dspy.OutputField()
+
+predict = dspy.ChainOfThought(ComplexReasoning)
+result = predict(problem="What is the capital of France and why?")
+```
+
+#### When to Use TwoStepAdapter
+
+`TwoStepAdapter` excels when:
+
+- **Using reasoning models**: Models like o1, o3, Claude Opus that benefit from natural language prompts.
+- **Complex reasoning tasks**: When you need detailed reasoning that's later extracted into structured format.
+- **Cost optimization**: Main model focuses on reasoning, cheaper model handles extraction.
+
+#### When Not to Use TwoStepAdapter
+
+Avoid using `TwoStepAdapter` if:
+
+- You need lowest possible latency (two API calls add overhead).
+- Your main model already handles structured output well.
+- Cost of two API calls outweighs benefits.
+
 ## Summary
 
 Adapters are a crucial component of DSPy that bridge the gap between structured DSPy signatures and language model APIs.
 Understanding when and how to use different adapters will help you build more reliable and efficient DSPy programs.
+
+**Quick Adapter Selection Guide:**
+
+- **ChatAdapter**: Default choice, works everywhere, good for most cases.
+- **JSONAdapter**: Use when model supports `response_format`, need low latency.
+- **BAMLAdapter**: Use for complex nested Pydantic structures, better model comprehension.
+- **TwoStepAdapter**: Use with reasoning models or when you need natural language reasoning first.

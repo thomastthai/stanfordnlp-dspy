@@ -133,7 +133,7 @@ func (a *JSONAdapter) buildSystemMessage(sig *signatures.Signature) string {
 	}
 
 	sb.WriteString("You must respond with valid JSON. ")
-	
+
 	// Build JSON schema description
 	sb.WriteString("The response should be a JSON object with the following fields:\n")
 	for _, field := range sig.OutputFields {

@@ -10,6 +10,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.43.0
 	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/hashicorp/go-retryablehttp v0.7.8
+	github.com/hashicorp/golang-lru/v2 v2.0.7
+	github.com/prometheus/client_golang v1.18.0
+	golang.org/x/time v0.5.0
 )
 
 require (

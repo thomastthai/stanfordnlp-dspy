@@ -71,7 +71,7 @@ func evaluateExpression(expression string) (string, error) {
 	// Replace common mathematical functions with govaluate-compatible names
 	expression = strings.ReplaceAll(expression, "sqrt", "sqrt")
 	expression = strings.ReplaceAll(expression, "^", "**")
-	
+
 	// Create the evaluator with math functions
 	expr, err := govaluate.NewEvaluableExpressionWithFunctions(
 		expression,

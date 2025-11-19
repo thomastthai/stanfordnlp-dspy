@@ -22,20 +22,20 @@ type LMIntegration struct {
 // It extracts the LM and adapter from the DSPy settings.
 func NewLMIntegration(ctx context.Context) (*LMIntegration, error) {
 	settings := dspy.SettingsFromContext(ctx)
-	
+
 	// Get LM from settings
 	if settings.LM == nil {
 		return nil, fmt.Errorf("no language model configured in settings")
 	}
-	
+
 	lm, ok := settings.LM.(clients.BaseLM)
 	if !ok {
 		return nil, fmt.Errorf("configured LM does not implement BaseLM interface")
 	}
-	
+
 	// Get or create adapter
 	adapter := getAdapter(settings)
-	
+
 	return &LMIntegration{
 		lm:      lm,
 		adapter: adapter,
@@ -46,13 +46,13 @@ func NewLMIntegration(ctx context.Context) (*LMIntegration, error) {
 // It handles formatting the request via the adapter and parsing the response.
 func (lmi *LMIntegration) Generate(ctx context.Context, sig *signatures.Signature,
 	inputs map[string]interface{}, demos []map[string]interface{}) (map[string]interface{}, error) {
-	
+
 	// Format request using adapter
 	request, err := lmi.adapter.Format(sig, inputs, demos)
 	if err != nil {
 		return nil, fmt.Errorf("failed to format request: %w", err)
 	}
-	
+
 	// Apply settings to request
 	settings := dspy.SettingsFromContext(ctx)
 	if request.Temperature == 0 {
@@ -61,19 +61,19 @@ func (lmi *LMIntegration) Generate(ctx context.Context, sig *signatures.Signatur
 	if request.MaxTokens == 0 || request.MaxTokens == 1000 {
 		request.MaxTokens = settings.MaxTokens
 	}
-	
+
 	// Call LM
 	response, err := lmi.lm.Call(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("LM call failed: %w", err)
 	}
-	
+
 	// Parse response using adapter
 	output, err := lmi.adapter.Parse(sig, response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
-	
+
 	return output, nil
 }
 
@@ -95,7 +95,7 @@ func getAdapter(settings *dspy.Settings) adapters.Adapter {
 			return adapters.NewXMLAdapter()
 		}
 	}
-	
+
 	// Default to chat adapter
 	return adapters.NewChatAdapter()
 }

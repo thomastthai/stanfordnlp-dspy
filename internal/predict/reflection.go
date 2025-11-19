@@ -25,22 +25,22 @@ type Reflection struct {
 
 // ReflectionStep represents a single iteration in the reflection process.
 type ReflectionStep struct {
-	Iteration   int
-	Response    string
-	Critique    string
-	Score       float64
-	Aspects     map[string]float64
-	Improved    bool
+	Iteration int
+	Response  string
+	Critique  string
+	Score     float64
+	Aspects   map[string]float64
+	Improved  bool
 }
 
 // ReflectionOptions configures a Reflection module.
 type ReflectionOptions struct {
 	// MaxIterations is the maximum number of refinement iterations
 	MaxIterations int
-	
+
 	// CritiqueAspects are the aspects to evaluate (e.g., "accuracy", "clarity")
 	CritiqueAspects []string
-	
+
 	// ConvergenceThreshold is the minimum improvement score to continue iterating
 	ConvergenceThreshold float64
 }
@@ -152,12 +152,12 @@ func (r *Reflection) Forward(ctx context.Context, inputs map[string]interface{})
 // generateCritique asks the LM to evaluate the response on specified aspects.
 func (r *Reflection) generateCritique(ctx context.Context, lmi *LMIntegration,
 	inputs map[string]interface{}, response *primitives.Prediction) (string, map[string]float64, error) {
-	
+
 	// Build critique prompt
 	aspectsList := strings.Join(r.critiqueAspects, ", ")
 	question := extractValue(inputs, "question", "input")
 	answer := extractResponse(response)
-	
+
 	prompt := fmt.Sprintf(`Evaluate this response on the following aspects: %s
 
 Question: %s
@@ -201,15 +201,15 @@ feedback: [your detailed critique]`, aspectsList, question, answer)
 func (r *Reflection) refineResponse(ctx context.Context,
 	inputs map[string]interface{}, previousResponse *primitives.Prediction,
 	critique string) (*primitives.Prediction, error) {
-	
+
 	question := extractValue(inputs, "question", "input")
-	
+
 	// Create new inputs with refinement context
 	refinementInputs := make(map[string]interface{})
 	for k, v := range inputs {
 		refinementInputs[k] = v
 	}
-	
+
 	// Add refinement context to inputs
 	if question != "" {
 		refinementInputs["question"] = fmt.Sprintf("%s\n\nRefinement guidance:\n%s", question, critique)
@@ -222,7 +222,7 @@ func (r *Reflection) refineResponse(ctx context.Context,
 // parseAspectScores extracts scores for each aspect from the critique content.
 func parseAspectScores(content string, aspects []string) map[string]float64 {
 	scores := make(map[string]float64)
-	
+
 	// Look for "aspect: score" pattern
 	for _, aspect := range aspects {
 		// Try multiple patterns
@@ -231,7 +231,7 @@ func parseAspectScores(content string, aspects []string) map[string]float64 {
 			aspect + `\s*:\s*([0-9]*\.?[0-9]+)`,
 			aspect + `\s*-\s*([0-9]*\.?[0-9]+)`,
 		}
-		
+
 		found := false
 		for _, pattern := range patterns {
 			re := regexp.MustCompile(`(?i)` + pattern)
@@ -250,13 +250,13 @@ func parseAspectScores(content string, aspects []string) map[string]float64 {
 				}
 			}
 		}
-		
+
 		// Default to middle score if not found
 		if !found {
 			scores[aspect] = 0.5
 		}
 	}
-	
+
 	return scores
 }
 
@@ -265,7 +265,7 @@ func calculateAverageScore(scores map[string]float64) float64 {
 	if len(scores) == 0 {
 		return 0.0
 	}
-	
+
 	total := 0.0
 	for _, score := range scores {
 		total += score
@@ -277,18 +277,18 @@ func calculateAverageScore(scores map[string]float64) float64 {
 func extractResponse(pred *primitives.Prediction) string {
 	// Try common output field names
 	fields := []string{"answer", "response", "output", "result"}
-	
+
 	for _, field := range fields {
 		if val, ok := pred.Get(field); ok {
 			return fmt.Sprintf("%v", val)
 		}
 	}
-	
+
 	// Fallback: return first field
 	for _, val := range pred.Fields() {
 		return fmt.Sprintf("%v", val)
 	}
-	
+
 	return ""
 }
 

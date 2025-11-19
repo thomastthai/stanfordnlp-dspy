@@ -1,178 +1,153 @@
-// Package datasets provides dataset loading and management for DSPy.
+// Package datasets provides dataset loading and processing utilities for DSPy.
 package datasets
 
 import (
-	"encoding/csv"
-	"encoding/json"
-	"fmt"
-	"io"
-	"os"
+	"context"
+	"math/rand"
+
+	"github.com/stanfordnlp/dspy/internal/primitives"
 )
 
-// Dataset represents a collection of examples for training or evaluation.
+// Dataset represents a generic dataset with train/dev/test splits.
 type Dataset interface {
-	// Len returns the number of examples in the dataset.
-	Len() int
-	// Get returns the example at the given index.
-	Get(index int) (map[string]interface{}, error)
-	// GetAll returns all examples in the dataset.
-	GetAll() ([]map[string]interface{}, error)
+	// Train returns the training examples
+	Train() []*primitives.Example
+	
+	// Dev returns the development/validation examples
+	Dev() []*primitives.Example
+	
+	// Test returns the test examples
+	Test() []*primitives.Example
+	
+	// Name returns the dataset name
+	Name() string
 }
 
-// InMemoryDataset is a simple in-memory dataset implementation.
-type InMemoryDataset struct {
-	examples []map[string]interface{}
+// BaseDataset provides common functionality for datasets.
+type BaseDataset struct {
+	name      string
+	train     []*primitives.Example
+	dev       []*primitives.Example
+	test      []*primitives.Example
+	trainSize int
+	devSize   int
+	testSize  int
+	trainSeed int64
+	evalSeed  int64
 }
 
-// NewInMemoryDataset creates a new in-memory dataset.
-func NewInMemoryDataset(examples []map[string]interface{}) *InMemoryDataset {
-	return &InMemoryDataset{
-		examples: examples,
+// DatasetOptions configures dataset loading.
+type DatasetOptions struct {
+	TrainSize int
+	DevSize   int
+	TestSize  int
+	TrainSeed int64
+	EvalSeed  int64
+	Shuffle   bool
+}
+
+// DefaultDatasetOptions returns default dataset options.
+func DefaultDatasetOptions() DatasetOptions {
+	return DatasetOptions{
+		TrainSize: -1, // -1 means use all
+		DevSize:   -1,
+		TestSize:  -1,
+		TrainSeed: 0,
+		EvalSeed:  2023,
+		Shuffle:   false,
 	}
 }
 
-// Len returns the number of examples in the dataset.
-func (d *InMemoryDataset) Len() int {
-	return len(d.examples)
+// NewBaseDataset creates a new base dataset.
+func NewBaseDataset(name string, opts DatasetOptions) *BaseDataset {
+	return &BaseDataset{
+		name:      name,
+		trainSize: opts.TrainSize,
+		devSize:   opts.DevSize,
+		testSize:  opts.TestSize,
+		trainSeed: opts.TrainSeed,
+		evalSeed:  opts.EvalSeed,
+	}
 }
 
-// Get returns the example at the given index.
-func (d *InMemoryDataset) Get(index int) (map[string]interface{}, error) {
-	if index < 0 || index >= len(d.examples) {
-		return nil, fmt.Errorf("index %d out of range [0, %d)", index, len(d.examples))
-	}
-	return d.examples[index], nil
+// Train implements Dataset.Train.
+func (d *BaseDataset) Train() []*primitives.Example {
+	return d.train
 }
 
-// GetAll returns all examples in the dataset.
-func (d *InMemoryDataset) GetAll() ([]map[string]interface{}, error) {
-	return d.examples, nil
+// Dev implements Dataset.Dev.
+func (d *BaseDataset) Dev() []*primitives.Example {
+	return d.dev
 }
 
-// LoadFromJSON loads a dataset from a JSON file.
-// The JSON file should contain an array of objects, where each object represents an example.
-func LoadFromJSON(path string, fields []string) (Dataset, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("opening file: %w", err)
-	}
-	defer file.Close()
-
-	var data []map[string]interface{}
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&data); err != nil {
-		return nil, fmt.Errorf("decoding JSON: %w", err)
-	}
-
-	// Filter fields if specified
-	if len(fields) > 0 {
-		filtered := make([]map[string]interface{}, len(data))
-		for i, example := range data {
-			filtered[i] = make(map[string]interface{})
-			for _, field := range fields {
-				if val, ok := example[field]; ok {
-					filtered[i][field] = val
-				}
-			}
-		}
-		data = filtered
-	}
-
-	return NewInMemoryDataset(data), nil
+// Test implements Dataset.Test.
+func (d *BaseDataset) Test() []*primitives.Example {
+	return d.test
 }
 
-// LoadFromCSV loads a dataset from a CSV file.
-// The first row is expected to contain column headers.
-func LoadFromCSV(path string, fields []string) (Dataset, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("opening file: %w", err)
-	}
-	defer file.Close()
-
-	reader := csv.NewReader(file)
-
-	// Read header
-	header, err := reader.Read()
-	if err != nil {
-		return nil, fmt.Errorf("reading header: %w", err)
-	}
-
-	// Determine which fields to include
-	fieldIndices := make(map[string]int)
-	if len(fields) == 0 {
-		// Include all fields
-		for i, name := range header {
-			fieldIndices[name] = i
-		}
-	} else {
-		// Include only specified fields
-		for _, field := range fields {
-			for i, name := range header {
-				if name == field {
-					fieldIndices[field] = i
-					break
-				}
-			}
-		}
-	}
-
-	// Read data
-	var examples []map[string]interface{}
-	for {
-		row, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, fmt.Errorf("reading row: %w", err)
-		}
-
-		example := make(map[string]interface{})
-		for name, idx := range fieldIndices {
-			if idx < len(row) {
-				example[name] = row[idx]
-			}
-		}
-		examples = append(examples, example)
-	}
-
-	return NewInMemoryDataset(examples), nil
+// Name implements Dataset.Name.
+func (d *BaseDataset) Name() string {
+	return d.name
 }
 
-// LoadFromJSONL loads a dataset from a JSONL (JSON Lines) file.
-// Each line in the file should be a valid JSON object.
-func LoadFromJSONL(path string, fields []string) (Dataset, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("opening file: %w", err)
+// SetTrain sets the training examples.
+func (d *BaseDataset) SetTrain(examples []*primitives.Example) {
+	d.train = d.applySizeAndShuffle(examples, d.trainSize, d.trainSeed)
+}
+
+// SetDev sets the development examples.
+func (d *BaseDataset) SetDev(examples []*primitives.Example) {
+	d.dev = d.applySizeAndShuffle(examples, d.devSize, d.evalSeed)
+}
+
+// SetTest sets the test examples.
+func (d *BaseDataset) SetTest(examples []*primitives.Example) {
+	d.test = d.applySizeAndShuffle(examples, d.testSize, d.evalSeed)
+}
+
+func (d *BaseDataset) applySizeAndShuffle(examples []*primitives.Example, size int, seed int64) []*primitives.Example {
+	if len(examples) == 0 {
+		return examples
 	}
-	defer file.Close()
-
-	var examples []map[string]interface{}
-	decoder := json.NewDecoder(file)
-
-	for {
-		var example map[string]interface{}
-		if err := decoder.Decode(&example); err == io.EOF {
-			break
-		} else if err != nil {
-			return nil, fmt.Errorf("decoding JSONL line: %w", err)
-		}
-
-		// Filter fields if specified
-		if len(fields) > 0 {
-			filtered := make(map[string]interface{})
-			for _, field := range fields {
-				if val, ok := example[field]; ok {
-					filtered[field] = val
-				}
-			}
-			example = filtered
-		}
-
-		examples = append(examples, example)
+	
+	// Shuffle if seed is set
+	if seed != 0 {
+		r := rand.New(rand.NewSource(seed))
+		shuffled := make([]*primitives.Example, len(examples))
+		copy(shuffled, examples)
+		r.Shuffle(len(shuffled), func(i, j int) {
+			shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+		})
+		examples = shuffled
 	}
+	
+	// Apply size limit
+	if size > 0 && size < len(examples) {
+		examples = examples[:size]
+	}
+	
+	return examples
+}
 
-	return NewInMemoryDataset(examples), nil
+// Loader is a function that loads dataset examples.
+type Loader func(ctx context.Context) ([]*primitives.Example, error)
+
+// SplitData splits examples into train/dev/test sets.
+func SplitData(examples []*primitives.Example, trainRatio, devRatio float64) (train, dev, test []*primitives.Example) {
+	total := len(examples)
+	trainEnd := int(float64(total) * trainRatio)
+	devEnd := trainEnd + int(float64(total)*devRatio)
+	
+	if trainEnd > total {
+		trainEnd = total
+	}
+	if devEnd > total {
+		devEnd = total
+	}
+	
+	train = examples[:trainEnd]
+	dev = examples[trainEnd:devEnd]
+	test = examples[devEnd:]
+	
+	return train, dev, test
 }

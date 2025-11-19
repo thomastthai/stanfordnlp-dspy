@@ -163,3 +163,34 @@ func (e *Example) String() string {
 	data, _ := json.MarshalIndent(e, "", "  ")
 	return string(data)
 }
+
+// WithInputs marks the specified fields as inputs.
+// This creates a new Example where the specified fields are moved to inputs.
+func (e *Example) WithInputs(fields ...string) *Example {
+	newExample := &Example{
+		inputs:   make(map[string]interface{}),
+		outputs:  make(map[string]interface{}),
+		metadata: make(map[string]interface{}),
+	}
+	
+	// Copy all fields first
+	allFields := e.ToMap()
+	for k, v := range allFields {
+		newExample.outputs[k] = v
+	}
+	
+	// Move specified fields to inputs
+	for _, field := range fields {
+		if val, ok := newExample.outputs[field]; ok {
+			newExample.inputs[field] = val
+			delete(newExample.outputs, field)
+		}
+	}
+	
+	// Copy metadata
+	for k, v := range e.metadata {
+		newExample.metadata[k] = v
+	}
+	
+	return newExample
+}

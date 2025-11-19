@@ -64,24 +64,32 @@ func (c *ChainOfThought) Forward(ctx context.Context, inputs map[string]interfac
 		return nil, err
 	}
 
-	// TODO: Implement actual LM call with reasoning
-	// For now, return a dummy prediction with reasoning
-	output := make(map[string]interface{})
+	// Create LM integration helper
+	lmi, err := NewLMIntegration(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create LM integration: %w", err)
+	}
 
-	// Add reasoning
-	output[c.ReasoningField] = "[Step-by-step reasoning would go here]"
-
-	// Add other outputs
-	for _, field := range c.Signature.OutputFields {
-		if field.Name != c.ReasoningField {
-			output[field.Name] = fmt.Sprintf("[predicted %s after reasoning]", field.Name)
+	// Get demos if available
+	var demos []map[string]interface{}
+	if c.Demos != nil && c.Demos.Value() != nil {
+		if demosSlice, ok := c.Demos.Value().([]map[string]interface{}); ok {
+			demos = demosSlice
 		}
+	}
+
+	// Generate output using LM (includes reasoning field)
+	output, err := lmi.Generate(ctx, c.Signature, inputs, demos)
+	if err != nil {
+		return nil, fmt.Errorf("chain of thought prediction failed: %w", err)
 	}
 
 	pred := primitives.NewPrediction(output)
 
-	// Store reasoning in metadata
-	pred.SetMetadata("reasoning", output[c.ReasoningField])
+	// Store reasoning in metadata if present
+	if reasoning, ok := output[c.ReasoningField]; ok {
+		pred.SetMetadata("reasoning", reasoning)
+	}
 
 	return pred, nil
 }

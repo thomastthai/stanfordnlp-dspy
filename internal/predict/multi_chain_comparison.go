@@ -127,16 +127,24 @@ func (m *MultiChainComparison) Forward(ctx context.Context, inputs map[string]in
 		return nil, err
 	}
 
-	// TODO: Implement actual LM call to compare chains
-	// For now, return a dummy prediction with comparison
-	output := make(map[string]interface{})
+	// Create LM integration helper
+	lmi, err := NewLMIntegration(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create LM integration: %w", err)
+	}
 
-	output["rationale"] = "[Comparing all reasoning attempts to find the most accurate answer]"
-
-	for _, field := range m.Signature.OutputFields {
-		if field.Name != "rationale" {
-			output[field.Name] = fmt.Sprintf("[predicted %s after comparing chains]", field.Name)
+	// Get demos if available
+	var demos []map[string]interface{}
+	if m.Demos != nil && m.Demos.Value() != nil {
+		if demosSlice, ok := m.Demos.Value().([]map[string]interface{}); ok {
+			demos = demosSlice
 		}
+	}
+
+	// Generate output using LM (compares all reasoning attempts)
+	output, err := lmi.Generate(ctx, m.Signature, inputs, demos)
+	if err != nil {
+		return nil, fmt.Errorf("multi-chain comparison failed: %w", err)
 	}
 
 	pred := primitives.NewPrediction(output)

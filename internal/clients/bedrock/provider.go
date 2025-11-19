@@ -20,22 +20,22 @@ var supportedModels = []string{
 	"anthropic.claude-v2:1",
 	"anthropic.claude-v2",
 	"anthropic.claude-instant-v1",
-	
+
 	// Amazon Titan
 	"amazon.titan-text-express-v1",
 	"amazon.titan-text-lite-v1",
 	"amazon.titan-text-premier-v1:0",
-	
+
 	// Meta Llama
 	"meta.llama2-13b-chat-v1",
 	"meta.llama2-70b-chat-v1",
 	"meta.llama3-8b-instruct-v1:0",
 	"meta.llama3-70b-instruct-v1:0",
-	
+
 	// AI21 Labs
 	"ai21.j2-ultra-v1",
 	"ai21.j2-mid-v1",
-	
+
 	// Cohere
 	"cohere.command-text-v14",
 	"cohere.command-light-text-v14",

@@ -243,14 +243,14 @@ func isRetryableStatus(statusCode int) bool {
 // isRetryableErrorCode checks if an Azure error code indicates a retryable error.
 func isRetryableErrorCode(code string) bool {
 	retryableCodes := map[string]bool{
-		"rate_limit_exceeded":    true,
-		"quota_exceeded":         true,
-		"insufficient_quota":     true,
-		"server_error":           true,
-		"service_unavailable":    true,
-		"timeout":                true,
-		"model_not_ready":        true,
-		"deployment_not_ready":   true,
+		"rate_limit_exceeded":  true,
+		"quota_exceeded":       true,
+		"insufficient_quota":   true,
+		"server_error":         true,
+		"service_unavailable":  true,
+		"timeout":              true,
+		"model_not_ready":      true,
+		"deployment_not_ready": true,
 	}
 	return retryableCodes[code]
 }

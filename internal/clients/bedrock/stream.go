@@ -128,10 +128,10 @@ func handleAnthropicStreamChunk(data []byte, chunkCh chan<- clients.StreamChunk)
 // handleTitanStreamChunk handles Amazon Titan streaming chunks.
 func handleTitanStreamChunk(data []byte, chunkCh chan<- clients.StreamChunk) error {
 	type StreamChunk struct {
-		OutputText       string `json:"outputText"`
-		Index            int    `json:"index"`
-		TotalOutputTextTokenCount int `json:"totalOutputTextTokenCount,omitempty"`
-		CompletionReason string `json:"completionReason,omitempty"`
+		OutputText                string `json:"outputText"`
+		Index                     int    `json:"index"`
+		TotalOutputTextTokenCount int    `json:"totalOutputTextTokenCount,omitempty"`
+		CompletionReason          string `json:"completionReason,omitempty"`
 	}
 
 	var chunk StreamChunk
@@ -156,9 +156,9 @@ func handleTitanStreamChunk(data []byte, chunkCh chan<- clients.StreamChunk) err
 // handleLlamaStreamChunk handles Meta Llama streaming chunks.
 func handleLlamaStreamChunk(data []byte, chunkCh chan<- clients.StreamChunk) error {
 	type StreamChunk struct {
-		Generation     string `json:"generation"`
-		StopReason     string `json:"stop_reason,omitempty"`
-		TokenCount     int    `json:"generation_token_count,omitempty"`
+		Generation string `json:"generation"`
+		StopReason string `json:"stop_reason,omitempty"`
+		TokenCount int    `json:"generation_token_count,omitempty"`
 	}
 
 	var chunk StreamChunk

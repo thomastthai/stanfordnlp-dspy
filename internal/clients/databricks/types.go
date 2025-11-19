@@ -18,7 +18,7 @@ func (e *DatabricksError) Error() string {
 // IsRetryable checks if the error is retryable.
 func (e *DatabricksError) IsRetryable() bool {
 	retryableCodes := map[string]bool{
-		"RESOURCE_EXHAUSTED":     true,
+		"RESOURCE_EXHAUSTED":      true,
 		"TEMPORARILY_UNAVAILABLE": true,
 		"INTERNAL_ERROR":          true,
 		"REQUEST_LIMIT_EXCEEDED":  true,
@@ -33,15 +33,15 @@ type FoundationModel string
 const (
 	// DBRX models
 	ModelDBRXInstruct FoundationModel = "databricks-dbrx-instruct"
-	
+
 	// Meta Llama models
 	ModelLlama3_70BInstruct FoundationModel = "databricks-meta-llama-3-70b-instruct"
 	ModelLlama3_8BInstruct  FoundationModel = "databricks-meta-llama-3-8b-instruct"
 	ModelLlama2_70BChat     FoundationModel = "databricks-meta-llama-2-70b-chat"
-	
+
 	// Mixtral models
 	ModelMixtral8x7BInstruct FoundationModel = "databricks-mixtral-8x7b-instruct"
-	
+
 	// MPT models
 	ModelMPT7BInstruct  FoundationModel = "databricks-mpt-7b-instruct"
 	ModelMPT30BInstruct FoundationModel = "databricks-mpt-30b-instruct"
@@ -97,17 +97,17 @@ const (
 
 // RateLimitConfig contains rate limit configuration.
 type RateLimitConfig struct {
-	Calls           int `json:"calls"`
-	RenewalPeriod   int `json:"renewal_period"`
-	Key             string `json:"key,omitempty"`
+	Calls         int    `json:"calls"`
+	RenewalPeriod int    `json:"renewal_period"`
+	Key           string `json:"key,omitempty"`
 }
 
 // Workspace represents a Databricks workspace.
 type Workspace struct {
-	ID        string `json:"workspace_id"`
-	Name      string `json:"workspace_name"`
+	ID         string `json:"workspace_id"`
+	Name       string `json:"workspace_name"`
 	Deployment string `json:"deployment_name"`
-	Region    string `json:"aws_region,omitempty"`
+	Region     string `json:"aws_region,omitempty"`
 }
 
 // TokenInfo contains information about a Databricks token.
@@ -120,10 +120,10 @@ type TokenInfo struct {
 
 // ServingEndpointPermission represents permissions for a serving endpoint.
 type ServingEndpointPermission struct {
-	UserName          string `json:"user_name,omitempty"`
-	GroupName         string `json:"group_name,omitempty"`
-	ServicePrincipal  string `json:"service_principal_name,omitempty"`
-	PermissionLevel   string `json:"permission_level"`
+	UserName         string `json:"user_name,omitempty"`
+	GroupName        string `json:"group_name,omitempty"`
+	ServicePrincipal string `json:"service_principal_name,omitempty"`
+	PermissionLevel  string `json:"permission_level"`
 }
 
 // PermissionLevel represents levels of access to serving endpoints.

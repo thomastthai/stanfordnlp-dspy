@@ -27,11 +27,11 @@ const (
 
 // ModelCapability represents capabilities of a Bedrock model.
 type ModelCapability struct {
-	TextGeneration bool
-	ChatCompletion bool
-	Embedding      bool
+	TextGeneration  bool
+	ChatCompletion  bool
+	Embedding       bool
 	ImageGeneration bool
-	Streaming      bool
+	Streaming       bool
 }
 
 // GetModelCapabilities returns the capabilities for a model family.
@@ -39,43 +39,43 @@ func GetModelCapabilities(family ModelFamily) ModelCapability {
 	switch family {
 	case ModelFamilyAnthropic:
 		return ModelCapability{
-			TextGeneration: true,
-			ChatCompletion: true,
-			Embedding:      false,
+			TextGeneration:  true,
+			ChatCompletion:  true,
+			Embedding:       false,
 			ImageGeneration: false,
-			Streaming:      true,
+			Streaming:       true,
 		}
 	case ModelFamilyTitan:
 		return ModelCapability{
-			TextGeneration: true,
-			ChatCompletion: false,
-			Embedding:      true,
+			TextGeneration:  true,
+			ChatCompletion:  false,
+			Embedding:       true,
 			ImageGeneration: false,
-			Streaming:      true,
+			Streaming:       true,
 		}
 	case ModelFamilyLlama:
 		return ModelCapability{
-			TextGeneration: true,
-			ChatCompletion: true,
-			Embedding:      false,
+			TextGeneration:  true,
+			ChatCompletion:  true,
+			Embedding:       false,
 			ImageGeneration: false,
-			Streaming:      true,
+			Streaming:       true,
 		}
 	case ModelFamilyAI21:
 		return ModelCapability{
-			TextGeneration: true,
-			ChatCompletion: false,
-			Embedding:      false,
+			TextGeneration:  true,
+			ChatCompletion:  false,
+			Embedding:       false,
 			ImageGeneration: false,
-			Streaming:      false,
+			Streaming:       false,
 		}
 	case ModelFamilyCohere:
 		return ModelCapability{
-			TextGeneration: true,
-			ChatCompletion: false,
-			Embedding:      true,
+			TextGeneration:  true,
+			ChatCompletion:  false,
+			Embedding:       true,
 			ImageGeneration: false,
-			Streaming:      false,
+			Streaming:       false,
 		}
 	default:
 		return ModelCapability{}
@@ -84,9 +84,9 @@ func GetModelCapabilities(family ModelFamily) ModelCapability {
 
 // ThrottlingConfig contains configuration for handling Bedrock throttling.
 type ThrottlingConfig struct {
-	MaxRetries      int
-	InitialBackoff  int // milliseconds
-	MaxBackoff      int // milliseconds
+	MaxRetries        int
+	InitialBackoff    int // milliseconds
+	MaxBackoff        int // milliseconds
 	BackoffMultiplier float64
 }
 
@@ -117,11 +117,11 @@ const (
 
 // ModelConfig contains model-specific configuration.
 type ModelConfig struct {
-	ModelID      string
-	MaxTokens    int
-	Temperature  float64
-	TopP         float64
-	TopK         int
+	ModelID       string
+	MaxTokens     int
+	Temperature   float64
+	TopP          float64
+	TopK          int
 	StopSequences []string
 }
 
@@ -143,7 +143,7 @@ func isRetryableAWSError(err error) bool {
 	}
 
 	errMsg := err.Error()
-	
+
 	// Check for common retryable errors
 	retryableErrors := []string{
 		"ThrottlingException",
@@ -166,9 +166,9 @@ func isRetryableAWSError(err error) bool {
 
 // contains checks if a string contains a substring.
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		(s == substr || len(s) > len(substr) && 
-			(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr || 
+	return len(s) >= len(substr) &&
+		(s == substr || len(s) > len(substr) &&
+			(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
 				indexContains(s, substr)))
 }
 

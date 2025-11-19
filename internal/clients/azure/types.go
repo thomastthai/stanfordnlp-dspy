@@ -66,10 +66,10 @@ type APIVersion string
 const (
 	// APIVersion2024_02_15 is the 2024-02-15-preview API version
 	APIVersion2024_02_15 APIVersion = "2024-02-15-preview"
-	
+
 	// APIVersion2024_06_01 is the 2024-06-01 API version
 	APIVersion2024_06_01 APIVersion = "2024-06-01"
-	
+
 	// APIVersion2024_10_21 is the 2024-10-21 API version
 	APIVersion2024_10_21 APIVersion = "2024-10-21"
 )
@@ -87,30 +87,30 @@ type DeploymentCapability struct {
 type AzureRegion string
 
 const (
-	RegionEastUS      AzureRegion = "eastus"
-	RegionEastUS2     AzureRegion = "eastus2"
-	RegionWestUS      AzureRegion = "westus"
-	RegionWestUS2     AzureRegion = "westus2"
-	RegionWestUS3     AzureRegion = "westus3"
-	RegionCentralUS   AzureRegion = "centralus"
-	RegionNorthCentralUS AzureRegion = "northcentralus"
-	RegionSouthCentralUS AzureRegion = "southcentralus"
-	RegionWestCentralUS  AzureRegion = "westcentralus"
-	RegionCanadaEast     AzureRegion = "canadaeast"
-	RegionCanadaCentral  AzureRegion = "canadacentral"
-	RegionBrazilSouth    AzureRegion = "brazilsouth"
-	RegionNorthEurope    AzureRegion = "northeurope"
-	RegionWestEurope     AzureRegion = "westeurope"
-	RegionFranceCentral  AzureRegion = "francecentral"
+	RegionEastUS             AzureRegion = "eastus"
+	RegionEastUS2            AzureRegion = "eastus2"
+	RegionWestUS             AzureRegion = "westus"
+	RegionWestUS2            AzureRegion = "westus2"
+	RegionWestUS3            AzureRegion = "westus3"
+	RegionCentralUS          AzureRegion = "centralus"
+	RegionNorthCentralUS     AzureRegion = "northcentralus"
+	RegionSouthCentralUS     AzureRegion = "southcentralus"
+	RegionWestCentralUS      AzureRegion = "westcentralus"
+	RegionCanadaEast         AzureRegion = "canadaeast"
+	RegionCanadaCentral      AzureRegion = "canadacentral"
+	RegionBrazilSouth        AzureRegion = "brazilsouth"
+	RegionNorthEurope        AzureRegion = "northeurope"
+	RegionWestEurope         AzureRegion = "westeurope"
+	RegionFranceCentral      AzureRegion = "francecentral"
 	RegionGermanyWestCentral AzureRegion = "germanywestcentral"
-	RegionNorwayEast        AzureRegion = "norwayeast"
-	RegionSwitzerlandNorth  AzureRegion = "switzerlandnorth"
-	RegionSwitzerlandWest   AzureRegion = "switzerlandwest"
-	RegionUKSouth           AzureRegion = "uksouth"
-	RegionUKWest            AzureRegion = "ukwest"
-	RegionSoutheastAsia     AzureRegion = "southeastasia"
-	RegionEastAsia          AzureRegion = "eastasia"
-	RegionAustraliaEast     AzureRegion = "australiaeast"
+	RegionNorwayEast         AzureRegion = "norwayeast"
+	RegionSwitzerlandNorth   AzureRegion = "switzerlandnorth"
+	RegionSwitzerlandWest    AzureRegion = "switzerlandwest"
+	RegionUKSouth            AzureRegion = "uksouth"
+	RegionUKWest             AzureRegion = "ukwest"
+	RegionSoutheastAsia      AzureRegion = "southeastasia"
+	RegionEastAsia           AzureRegion = "eastasia"
+	RegionAustraliaEast      AzureRegion = "australiaeast"
 	RegionAustraliaSoutheast AzureRegion = "australiasoutheast"
 	RegionJapanEast          AzureRegion = "japaneast"
 	RegionJapanWest          AzureRegion = "japanwest"

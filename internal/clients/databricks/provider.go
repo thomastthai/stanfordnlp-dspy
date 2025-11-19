@@ -18,7 +18,7 @@ var supportedModels = []string{
 	"databricks-meta-llama-3-70b-instruct",
 	"databricks-meta-llama-3-8b-instruct",
 	"databricks-mixtral-8x7b-instruct",
-	
+
 	// Custom models - users can specify their own endpoint names
 }
 

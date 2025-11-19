@@ -25,9 +25,9 @@ type StreamChunk struct {
 
 // ChunkChoice represents a streaming choice.
 type ChunkChoice struct {
-	Index        int         `json:"index"`
-	Delta        ChunkDelta  `json:"delta"`
-	FinishReason *string     `json:"finish_reason"`
+	Index        int        `json:"index"`
+	Delta        ChunkDelta `json:"delta"`
+	FinishReason *string    `json:"finish_reason"`
 }
 
 // ChunkDelta represents the delta content in a streaming chunk.

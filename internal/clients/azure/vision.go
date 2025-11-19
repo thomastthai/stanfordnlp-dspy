@@ -171,7 +171,7 @@ func (c *Client) callVisionInternal(ctx context.Context, reqBody VisionRequest, 
 	// This is a simplified version - in production, you'd want to reuse
 	// the same HTTP client and error handling logic as the main Call method
 	// For now, we'll redirect to the standard Call with converted messages
-	
+
 	// Convert vision messages to standard messages
 	// Note: This is a simplification - Azure OpenAI supports the vision format directly
 	standardReq := &clients.Request{

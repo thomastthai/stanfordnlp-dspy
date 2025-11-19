@@ -17,15 +17,15 @@ var supportedModels = []string{
 	// GPT-4o series
 	"gpt-4o",
 	"gpt-4o-mini",
-	
+
 	// GPT-4 Turbo
 	"gpt-4-turbo",
 	"gpt-4",
-	
+
 	// GPT-3.5 Turbo
 	"gpt-35-turbo",
 	"gpt-35-turbo-16k",
-	
+
 	// These are base model names - actual deployment names may vary
 }
 

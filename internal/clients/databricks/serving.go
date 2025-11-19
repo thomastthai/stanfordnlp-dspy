@@ -12,36 +12,36 @@ import (
 
 // EndpointInfo represents information about a Databricks serving endpoint.
 type EndpointInfo struct {
-	ID              string          `json:"id"`
-	Name            string          `json:"name"`
-	Creator         string          `json:"creator"`
-	CreationTime    int64           `json:"creation_timestamp"`
-	LastUpdated     int64           `json:"last_updated_timestamp"`
-	State           EndpointState   `json:"state"`
-	Config          *EndpointConfig `json:"config,omitempty"`
-	Tags            []Tag           `json:"tags,omitempty"`
+	ID           string          `json:"id"`
+	Name         string          `json:"name"`
+	Creator      string          `json:"creator"`
+	CreationTime int64           `json:"creation_timestamp"`
+	LastUpdated  int64           `json:"last_updated_timestamp"`
+	State        EndpointState   `json:"state"`
+	Config       *EndpointConfig `json:"config,omitempty"`
+	Tags         []Tag           `json:"tags,omitempty"`
 }
 
 // EndpointState represents the state of a serving endpoint.
 type EndpointState struct {
-	Ready      string `json:"ready"`
+	Ready        string `json:"ready"`
 	ConfigUpdate string `json:"config_update,omitempty"`
 }
 
 // EndpointConfig represents the configuration of a serving endpoint.
 type EndpointConfig struct {
-	ServedModels  []ServedModel `json:"served_models"`
+	ServedModels  []ServedModel  `json:"served_models"`
 	TrafficConfig *TrafficConfig `json:"traffic_config,omitempty"`
 }
 
 // ServedModel represents a model served by an endpoint.
 type ServedModel struct {
-	Name                 string `json:"name"`
-	ModelName            string `json:"model_name"`
-	ModelVersion         string `json:"model_version"`
-	WorkloadSize         string `json:"workload_size"`
-	ScaleToZeroEnabled   bool   `json:"scale_to_zero_enabled"`
-	EnvironmentVars      map[string]string `json:"environment_vars,omitempty"`
+	Name               string            `json:"name"`
+	ModelName          string            `json:"model_name"`
+	ModelVersion       string            `json:"model_version"`
+	WorkloadSize       string            `json:"workload_size"`
+	ScaleToZeroEnabled bool              `json:"scale_to_zero_enabled"`
+	EnvironmentVars    map[string]string `json:"environment_vars,omitempty"`
 }
 
 // TrafficConfig defines how traffic is routed between models.

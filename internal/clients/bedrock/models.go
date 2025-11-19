@@ -110,10 +110,10 @@ type AI21Adapter struct{}
 // BuildRequest builds an AI21-formatted request.
 func (a *AI21Adapter) BuildRequest(request *clients.Request) ([]byte, error) {
 	type Request struct {
-		Prompt      string   `json:"prompt"`
-		Temperature float64  `json:"temperature,omitempty"`
-		TopP        float64  `json:"topP,omitempty"`
-		MaxTokens   int      `json:"maxTokens,omitempty"`
+		Prompt        string   `json:"prompt"`
+		Temperature   float64  `json:"temperature,omitempty"`
+		TopP          float64  `json:"topP,omitempty"`
+		MaxTokens     int      `json:"maxTokens,omitempty"`
 		StopSequences []string `json:"stopSequences,omitempty"`
 	}
 
@@ -191,10 +191,10 @@ type CohereAdapter struct{}
 // BuildRequest builds a Cohere-formatted request.
 func (c *CohereAdapter) BuildRequest(request *clients.Request) ([]byte, error) {
 	type Request struct {
-		Prompt      string   `json:"prompt"`
-		Temperature float64  `json:"temperature,omitempty"`
-		P           float64  `json:"p,omitempty"`
-		MaxTokens   int      `json:"max_tokens,omitempty"`
+		Prompt        string   `json:"prompt"`
+		Temperature   float64  `json:"temperature,omitempty"`
+		P             float64  `json:"p,omitempty"`
+		MaxTokens     int      `json:"max_tokens,omitempty"`
 		StopSequences []string `json:"stop_sequences,omitempty"`
 	}
 
@@ -266,7 +266,7 @@ func (c *CohereAdapter) ParseResponse(body []byte, modelID string) (*clients.Res
 // GetModelAdapter returns the appropriate adapter for a model.
 func GetModelAdapter(modelID string) ModelAdapter {
 	provider := getModelProvider(modelID)
-	
+
 	switch provider {
 	case "anthropic":
 		return &AnthropicAdapter{}

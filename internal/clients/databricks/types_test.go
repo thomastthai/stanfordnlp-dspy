@@ -6,9 +6,9 @@ import (
 
 func TestDatabricksError_Error(t *testing.T) {
 	tests := []struct {
-		name    string
-		err     *DatabricksError
-		want    string
+		name string
+		err  *DatabricksError
+		want string
 	}{
 		{
 			name: "error with details",

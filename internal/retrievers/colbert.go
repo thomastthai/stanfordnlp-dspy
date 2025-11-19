@@ -67,31 +67,6 @@ func NewColBERTv2(opts ColBERTv2Options) *ColBERTv2 {
 	}
 }
 
-// Retrieve implements Retriever.Retrieve.
-	if opts.URL == "" {
-		opts.URL = "http://0.0.0.0"
-	}
-	if opts.Port > 0 {
-		opts.URL = fmt.Sprintf("%s:%d", opts.URL, opts.Port)
-	}
-	if opts.Timeout == 0 {
-		opts.Timeout = 10 * time.Second
-	}
-	if opts.MaxK == 0 {
-		opts.MaxK = 100
-	}
-
-	return &ColBERTv2{
-		BaseRetriever: NewBaseRetriever("colbertv2"),
-		url:           opts.URL,
-		usePost:       opts.UsePost,
-		maxK:          opts.MaxK,
-		client: &http.Client{
-			Timeout: opts.Timeout,
-		},
-	}
-}
-
 // Retrieve returns the top-k most relevant documents for the query.
 func (c *ColBERTv2) Retrieve(ctx context.Context, query string, k int) ([]string, error) {
 	docs, err := c.RetrieveWithScores(ctx, query, k)

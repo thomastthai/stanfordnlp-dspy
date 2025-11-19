@@ -276,7 +276,7 @@ func (sc *StreamCollector) GetItemsAsStrings() []string {
 		strings[i] = fmt.Sprintf("%v", item)
 	}
 	return strings
-)
+}
 
 // Streamify wraps a function to make it streaming-enabled.
 // It takes a function that produces output and converts it to stream tokens incrementally.

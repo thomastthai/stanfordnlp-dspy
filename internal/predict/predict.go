@@ -56,16 +56,24 @@ func (p *Predict) Forward(ctx context.Context, inputs map[string]interface{}) (*
 		return nil, err
 	}
 
-	// TODO: Get LM from context/settings
-	// TODO: Get adapter from context/settings
-	// TODO: Format request using adapter
-	// TODO: Call LM
-	// TODO: Parse response using adapter
+	// Create LM integration helper
+	lmi, err := NewLMIntegration(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create LM integration: %w", err)
+	}
 
-	// For now, return a dummy prediction
-	output := make(map[string]interface{})
-	for _, field := range p.Signature.OutputFields {
-		output[field.Name] = fmt.Sprintf("[predicted %s]", field.Name)
+	// Get demos if available
+	var demos []map[string]interface{}
+	if p.Demos != nil && p.Demos.Value() != nil {
+		if demosSlice, ok := p.Demos.Value().([]map[string]interface{}); ok {
+			demos = demosSlice
+		}
+	}
+
+	// Generate output using LM
+	output, err := lmi.Generate(ctx, p.Signature, inputs, demos)
+	if err != nil {
+		return nil, fmt.Errorf("prediction failed: %w", err)
 	}
 
 	return primitives.NewPrediction(output), nil

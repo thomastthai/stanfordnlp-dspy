@@ -192,7 +192,7 @@ func (m *BaseModule) Load(data []byte) error {
 
 	// Get parameters without holding the lock
 	params := m.NamedParameters()
-	
+
 	// Now update values
 	for _, np := range params {
 		if value, exists := paramMap[np.Name]; exists {

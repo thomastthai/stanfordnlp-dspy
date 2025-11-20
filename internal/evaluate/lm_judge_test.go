@@ -49,40 +49,40 @@ func TestLMJudge_Judge(t *testing.T) {
 
 func TestLMJudge_ScoreFormats(t *testing.T) {
 	tests := []struct {
-		name           string
-		format         string
-		response       string
-		expectedScore  float64
+		name          string
+		format        string
+		response      string
+		expectedScore float64
 	}{
 		{
-			name:           "numeric format",
-			format:         "numeric",
-			response:       "Score: 0.75",
-			expectedScore:  0.75,
+			name:          "numeric format",
+			format:        "numeric",
+			response:      "Score: 0.75",
+			expectedScore: 0.75,
 		},
 		{
-			name:           "letter format A",
-			format:         "letter",
-			response:       "Grade: A",
-			expectedScore:  1.0,
+			name:          "letter format A",
+			format:        "letter",
+			response:      "Grade: A",
+			expectedScore: 1.0,
 		},
 		{
-			name:           "letter format B",
-			format:         "letter",
-			response:       "Grade: B",
-			expectedScore:  0.8,
+			name:          "letter format B",
+			format:        "letter",
+			response:      "Grade: B",
+			expectedScore: 0.8,
 		},
 		{
-			name:           "boolean format yes",
-			format:         "boolean",
-			response:       "Acceptable: yes",
-			expectedScore:  1.0,
+			name:          "boolean format yes",
+			format:        "boolean",
+			response:      "Acceptable: yes",
+			expectedScore: 1.0,
 		},
 		{
-			name:           "boolean format no",
-			format:         "boolean",
-			response:       "Acceptable: no",
-			expectedScore:  0.0,
+			name:          "boolean format no",
+			format:        "boolean",
+			response:      "Acceptable: no",
+			expectedScore: 0.0,
 		},
 	}
 
@@ -263,8 +263,8 @@ func floatToString(f float64) string {
 }
 
 func absFloat(x float64) float64 {
-if x < 0 {
-return -x
-}
-return x
+	if x < 0 {
+		return -x
+	}
+	return x
 }

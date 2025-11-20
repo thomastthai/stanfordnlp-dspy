@@ -150,14 +150,14 @@ func (l *LMJudge) buildPrompt(example *primitives.Example, prediction *primitive
 func (l *LMJudge) parseResponse(text string) (float64, string, error) {
 	// Split into lines for easier parsing
 	lines := strings.Split(text, "\n")
-	
+
 	var score float64
 	var justification strings.Builder
 	scoreFound := false
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		
+
 		// Try to extract score based on format
 		switch l.ScoreFormat {
 		case "numeric":
@@ -188,9 +188,9 @@ func (l *LMJudge) parseResponse(text string) (float64, string, error) {
 		}
 
 		// Collect justification
-		if line != "" && !strings.Contains(strings.ToLower(line), "score:") && 
-		   !strings.Contains(strings.ToLower(line), "grade:") && 
-		   !strings.Contains(strings.ToLower(line), "acceptable:") {
+		if line != "" && !strings.Contains(strings.ToLower(line), "score:") &&
+			!strings.Contains(strings.ToLower(line), "grade:") &&
+			!strings.Contains(strings.ToLower(line), "acceptable:") {
 			if justification.Len() > 0 {
 				justification.WriteString(" ")
 			}
@@ -308,11 +308,11 @@ func median(scores []float64) float64 {
 	if len(scores) == 0 {
 		return 0.0
 	}
-	
+
 	// Create a copy and sort
 	sorted := make([]float64, len(scores))
 	copy(sorted, scores)
-	
+
 	// Simple bubble sort for small arrays
 	for i := 0; i < len(sorted); i++ {
 		for j := i + 1; j < len(sorted); j++ {
@@ -321,7 +321,7 @@ func median(scores []float64) float64 {
 			}
 		}
 	}
-	
+
 	mid := len(sorted) / 2
 	if len(sorted)%2 == 0 {
 		return (sorted[mid-1] + sorted[mid]) / 2.0
@@ -334,14 +334,14 @@ func majority(scores []float64) float64 {
 	if len(scores) == 0 {
 		return 0.0
 	}
-	
+
 	passing := 0
 	for _, score := range scores {
 		if score >= 0.5 {
 			passing++
 		}
 	}
-	
+
 	if float64(passing) >= float64(len(scores))/2.0 {
 		return 1.0
 	}

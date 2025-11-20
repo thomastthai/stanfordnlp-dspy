@@ -18,7 +18,7 @@ func NewColBERTv2(url string, port string, usePost bool) *ColBERTv2 {
 	opts.URL = url
 	opts.Port = port
 	opts.UsePost = usePost
-	
+
 	return &ColBERTv2{
 		retriever: retrievers.NewColBERTv2(opts),
 	}
@@ -31,7 +31,7 @@ func (c *ColBERTv2) Call(query string, k int) ([]map[string]interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Convert to legacy format
 	results := make([]map[string]interface{}, len(docs))
 	for i, doc := range docs {
@@ -40,7 +40,7 @@ func (c *ColBERTv2) Call(query string, k int) ([]map[string]interface{}, error) 
 			"score":     doc.Score,
 			"pid":       doc.ID,
 		}
-		
+
 		// Merge any additional metadata
 		for k, v := range doc.Metadata {
 			if _, exists := results[i][k]; !exists {
@@ -48,7 +48,7 @@ func (c *ColBERTv2) Call(query string, k int) ([]map[string]interface{}, error) 
 			}
 		}
 	}
-	
+
 	return results, nil
 }
 
@@ -58,7 +58,7 @@ func (c *ColBERTv2) __call__(query string, k int, simplify bool) (interface{}, e
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if simplify {
 		// Return just the text
 		texts := make([]string, len(docs))
@@ -69,7 +69,7 @@ func (c *ColBERTv2) __call__(query string, k int, simplify bool) (interface{}, e
 		}
 		return texts, nil
 	}
-	
+
 	return docs, nil
 }
 

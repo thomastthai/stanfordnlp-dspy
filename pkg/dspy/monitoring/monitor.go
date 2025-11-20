@@ -10,16 +10,16 @@ import (
 type Monitor interface {
 	// RecordRequest records a completed request
 	RecordRequest(duration time.Duration, model string, tokens int)
-	
+
 	// RecordError records an error
 	RecordError(err error, model string)
-	
+
 	// RecordCost records the cost of an operation
 	RecordCost(cost float64, model string)
-	
+
 	// RecordCacheHit records a cache hit
 	RecordCacheHit(cacheType string)
-	
+
 	// RecordCacheMiss records a cache miss
 	RecordCacheMiss(cacheType string)
 }
@@ -34,13 +34,13 @@ type Tracer interface {
 type Span interface {
 	// End ends the span
 	End()
-	
+
 	// SetAttribute sets an attribute on the span
 	SetAttribute(key string, value interface{})
-	
+
 	// SetError marks the span as errored
 	SetError(err error)
-	
+
 	// Context returns the span context
 	Context() context.Context
 }

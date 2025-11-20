@@ -16,15 +16,15 @@ var supportedModels = []string{
 	// Gemini 1.5 Pro
 	"gemini-1.5-pro",
 	"gemini-1.5-pro-latest",
-	
+
 	// Gemini 1.5 Flash
 	"gemini-1.5-flash",
 	"gemini-1.5-flash-latest",
-	
+
 	// Gemini 1.0 Pro
 	"gemini-1.0-pro",
 	"gemini-pro",
-	
+
 	// Gemini Pro Vision
 	"gemini-pro-vision",
 	"gemini-1.0-pro-vision",

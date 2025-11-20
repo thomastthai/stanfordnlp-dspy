@@ -50,20 +50,20 @@ func TestUsageTracker(t *testing.T) {
 
 func TestCalculateCost(t *testing.T) {
 	tests := []struct {
-		name              string
-		promptTokens      int
-		completionTokens  int
-		promptPrice       float64
-		completionPrice   float64
-		expectedCost      float64
+		name             string
+		promptTokens     int
+		completionTokens int
+		promptPrice      float64
+		completionPrice  float64
+		expectedCost     float64
 	}{
 		{
 			name:             "GPT-4 pricing",
 			promptTokens:     1000,
 			completionTokens: 500,
-			promptPrice:      0.03,  // $0.03 per 1K tokens
-			completionPrice:  0.06,  // $0.06 per 1K tokens
-			expectedCost:     0.06,  // (1000/1000)*0.03 + (500/1000)*0.06 = 0.03 + 0.03 = 0.06
+			promptPrice:      0.03, // $0.03 per 1K tokens
+			completionPrice:  0.06, // $0.06 per 1K tokens
+			expectedCost:     0.06, // (1000/1000)*0.03 + (500/1000)*0.06 = 0.03 + 0.03 = 0.06
 		},
 		{
 			name:             "GPT-3.5 pricing",
@@ -113,10 +113,10 @@ func TestUsageTrackerConcurrency(t *testing.T) {
 
 func TestUsageStats_Duration(t *testing.T) {
 	tracker := NewUsageTracker()
-	
+
 	// Wait a bit
 	time.Sleep(100 * time.Millisecond)
-	
+
 	stats := tracker.GetStats()
 	duration := stats.EndTime.Sub(stats.StartTime)
 	if duration < 100*time.Millisecond {

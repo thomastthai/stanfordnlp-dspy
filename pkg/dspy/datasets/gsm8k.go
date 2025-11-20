@@ -42,7 +42,7 @@ func NewGSM8K(config GSM8KConfig) *GSM8K {
 	if config.CacheDir == "" {
 		config.CacheDir = filepath.Join(os.TempDir(), "dspy", "gsm8k")
 	}
-	
+
 	return &GSM8K{
 		cacheDir: config.CacheDir,
 		lazyLoad: config.LazyLoad,
@@ -53,21 +53,21 @@ func NewGSM8K(config GSM8KConfig) *GSM8K {
 func (g *GSM8K) Load(ctx context.Context) ([]Example, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	
+
 	if g.loaded && !g.lazyLoad {
 		return append(g.trainExamples, g.testExamples...), nil
 	}
-	
+
 	// Load training data
 	if err := g.loadSplit(ctx, "train"); err != nil {
 		return nil, fmt.Errorf("failed to load train split: %w", err)
 	}
-	
+
 	// Load test data
 	if err := g.loadSplit(ctx, "test"); err != nil {
 		return nil, fmt.Errorf("failed to load test split: %w", err)
 	}
-	
+
 	g.loaded = true
 	return append(g.trainExamples, g.testExamples...), nil
 }
@@ -80,11 +80,11 @@ func (g *GSM8K) Train() ([]Example, error) {
 		return g.trainExamples, nil
 	}
 	g.mu.RUnlock()
-	
+
 	if err := g.loadSplit(context.Background(), "train"); err != nil {
 		return nil, err
 	}
-	
+
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	return g.trainExamples, nil
@@ -98,11 +98,11 @@ func (g *GSM8K) Test() ([]Example, error) {
 		return g.testExamples, nil
 	}
 	g.mu.RUnlock()
-	
+
 	if err := g.loadSplit(context.Background(), "test"); err != nil {
 		return nil, err
 	}
-	
+
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	return g.testExamples, nil
@@ -118,17 +118,17 @@ func (g *GSM8K) Len() int {
 // loadSplit loads a specific split from cache or downloads it.
 func (g *GSM8K) loadSplit(ctx context.Context, split string) error {
 	cachePath := filepath.Join(g.cacheDir, fmt.Sprintf("%s.jsonl", split))
-	
+
 	// Check if cached
 	if _, err := os.Stat(cachePath); err == nil {
 		return g.loadFromCache(cachePath, split)
 	}
-	
+
 	// Download if not cached
 	if err := g.download(ctx, split, cachePath); err != nil {
 		return fmt.Errorf("failed to download %s split: %w", split, err)
 	}
-	
+
 	return g.loadFromCache(cachePath, split)
 }
 
@@ -139,22 +139,22 @@ func (g *GSM8K) loadFromCache(path string, split string) error {
 		return fmt.Errorf("failed to open cache file: %w", err)
 	}
 	defer file.Close()
-	
+
 	examples, err := g.parseJSONL(file)
 	if err != nil {
 		return fmt.Errorf("failed to parse JSONL: %w", err)
 	}
-	
+
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	
+
 	switch split {
 	case "train":
 		g.trainExamples = examples
 	case "test":
 		g.testExamples = examples
 	}
-	
+
 	return nil
 }
 
@@ -164,7 +164,7 @@ func (g *GSM8K) download(ctx context.Context, split string, destPath string) err
 	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
-	
+
 	// URL for GSM8K dataset (HuggingFace datasets)
 	var url string
 	if split == "train" {
@@ -174,33 +174,33 @@ func (g *GSM8K) download(ctx context.Context, split string, destPath string) err
 	} else {
 		return fmt.Errorf("unknown split: %s", split)
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("download failed with status: %d", resp.StatusCode)
 	}
-	
+
 	// Save to cache
 	out, err := os.Create(destPath)
 	if err != nil {
 		return fmt.Errorf("failed to create cache file: %w", err)
 	}
 	defer out.Close()
-	
+
 	if _, err := io.Copy(out, resp.Body); err != nil {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -208,7 +208,7 @@ func (g *GSM8K) download(ctx context.Context, split string, destPath string) err
 func (g *GSM8K) parseJSONL(r io.Reader) ([]Example, error) {
 	examples := make([]Example, 0)
 	scanner := bufio.NewScanner(r)
-	
+
 	lineNum := 0
 	for scanner.Scan() {
 		lineNum++
@@ -216,10 +216,10 @@ func (g *GSM8K) parseJSONL(r io.Reader) ([]Example, error) {
 		if err := json.Unmarshal(scanner.Bytes(), &raw); err != nil {
 			return nil, fmt.Errorf("failed to decode JSON at line %d: %w", lineNum, err)
 		}
-		
+
 		// Extract numeric answer from the chain-of-thought
 		answer := extractAnswer(raw.Answer)
-		
+
 		ex := Example{
 			ID: fmt.Sprintf("gsm8k_%d", lineNum),
 			Inputs: map[string]interface{}{
@@ -230,14 +230,14 @@ func (g *GSM8K) parseJSONL(r io.Reader) ([]Example, error) {
 				"chain_of_thought": raw.Answer,
 			},
 		}
-		
+
 		examples = append(examples, ex)
 	}
-	
+
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("error reading JSONL: %w", err)
 	}
-	
+
 	return examples, nil
 }
 
@@ -251,14 +251,14 @@ func extractAnswer(chainOfThought string) string {
 		// Remove commas from numbers like "1,000"
 		return strings.ReplaceAll(matches[1], ",", "")
 	}
-	
+
 	// Fallback: try to find last number in the text
 	re = regexp.MustCompile(`(-?\d+(?:,\d+)*(?:\.\d+)?)`)
 	allMatches := re.FindAllString(chainOfThought, -1)
 	if len(allMatches) > 0 {
 		return strings.ReplaceAll(allMatches[len(allMatches)-1], ",", "")
 	}
-	
+
 	return ""
 }
 
@@ -266,7 +266,7 @@ func extractAnswer(chainOfThought string) string {
 func (g *GSM8K) Split(ratios ...float64) []Dataset {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	
+
 	allExamples := append(g.trainExamples, g.testExamples...)
 	ds := NewInMemoryDataset("gsm8k", allExamples)
 	return ds.Split(ratios...)
@@ -276,7 +276,7 @@ func (g *GSM8K) Split(ratios ...float64) []Dataset {
 func (g *GSM8K) Batch(size int) [][]Example {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	
+
 	allExamples := append(g.trainExamples, g.testExamples...)
 	ds := NewInMemoryDataset("gsm8k", allExamples)
 	return ds.Batch(size)
@@ -286,7 +286,7 @@ func (g *GSM8K) Batch(size int) [][]Example {
 func (g *GSM8K) Shuffle(seed int64) Dataset {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	
+
 	allExamples := append(g.trainExamples, g.testExamples...)
 	ds := NewInMemoryDataset("gsm8k", allExamples)
 	return ds.Shuffle(seed)
@@ -296,7 +296,7 @@ func (g *GSM8K) Shuffle(seed int64) Dataset {
 func (g *GSM8K) Filter(predicate func(Example) bool) Dataset {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	
+
 	allExamples := append(g.trainExamples, g.testExamples...)
 	ds := NewInMemoryDataset("gsm8k", allExamples)
 	return ds.Filter(predicate)
@@ -309,7 +309,7 @@ func LoadGSM8KFromFile(path string) ([]Example, error) {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
-	
+
 	g := &GSM8K{}
 	return g.parseJSONL(bufio.NewReader(file))
 }

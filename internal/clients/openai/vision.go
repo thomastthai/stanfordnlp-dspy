@@ -133,15 +133,15 @@ func getMIMETypeFromExtension(filePath string) string {
 // CreateVisionMessage creates a vision message with text and images.
 func CreateVisionMessage(role, text string, images ...ImageURLContent) VisionMessage {
 	content := make([]MessageContent, 0, len(images)+1)
-	
+
 	// Add text first
 	content = append(content, NewTextContent(text))
-	
+
 	// Add images
 	for _, img := range images {
 		content = append(content, img)
 	}
-	
+
 	return VisionMessage{
 		Role:    role,
 		Content: content,

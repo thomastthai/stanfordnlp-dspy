@@ -54,12 +54,12 @@ func (c *ChromaDB) Retrieve(ctx context.Context, query string, k int) ([]string,
 	if err != nil {
 		return nil, err
 	}
-	
+
 	results := make([]string, len(docs))
 	for i, doc := range docs {
 		results[i] = doc.Content
 	}
-	
+
 	return results, nil
 }
 
@@ -74,11 +74,11 @@ func (c *ChromaDB) QueryByText(ctx context.Context, queryText string, nResults i
 		"query_texts": []string{queryText},
 		"n_results":   nResults,
 	}
-	
+
 	if where != nil {
 		payload["where"] = where
 	}
-	
+
 	return c.executeQuery(ctx, payload)
 }
 
@@ -88,11 +88,11 @@ func (c *ChromaDB) QueryByEmbedding(ctx context.Context, queryEmbedding []float6
 		"query_embeddings": [][]float64{queryEmbedding},
 		"n_results":        nResults,
 	}
-	
+
 	if where != nil {
 		payload["where"] = where
 	}
-	
+
 	return c.executeQuery(ctx, payload)
 }
 
@@ -102,65 +102,65 @@ func (c *ChromaDB) executeQuery(ctx context.Context, payload map[string]interfac
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
-	
+
 	url := fmt.Sprintf("%s/api/v1/collections/%s/query", c.url, c.collectionName)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	if c.apiKey != "" {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.apiKey))
 	}
-	
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
-		IDs        [][]string               `json:"ids"`
-		Distances  [][]float64              `json:"distances"`
-		Documents  [][]string               `json:"documents"`
-		Metadatas  [][]map[string]interface{} `json:"metadatas"`
+		IDs       [][]string                 `json:"ids"`
+		Distances [][]float64                `json:"distances"`
+		Documents [][]string                 `json:"documents"`
+		Metadatas [][]map[string]interface{} `json:"metadatas"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	// ChromaDB returns nested arrays (one per query)
 	// We sent one query, so take the first result
 	if len(result.IDs) == 0 || len(result.IDs[0]) == 0 {
 		return []Document{}, nil
 	}
-	
+
 	docs := make([]Document, len(result.IDs[0]))
 	for i := range result.IDs[0] {
 		doc := Document{
 			ID:      result.IDs[0][i],
 			Content: result.Documents[0][i],
 		}
-		
+
 		// Distance is converted to score (lower distance = higher score)
 		if i < len(result.Distances[0]) {
 			doc.Score = 1.0 / (1.0 + result.Distances[0][i])
 		}
-		
+
 		// Add metadata
 		if i < len(result.Metadatas[0]) {
 			doc.Metadata = result.Metadatas[0][i]
 		}
-		
+
 		docs[i] = doc
 	}
-	
+
 	return docs, nil
 }
 
@@ -170,41 +170,41 @@ func (c *ChromaDB) Add(ctx context.Context, ids []string, documents []string, me
 		"ids":       ids,
 		"documents": documents,
 	}
-	
+
 	if metadatas != nil {
 		payload["metadatas"] = metadatas
 	}
-	
+
 	if embeddings != nil {
 		payload["embeddings"] = embeddings
 	}
-	
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
-	
+
 	url := fmt.Sprintf("%s/api/v1/collections/%s/add", c.url, c.collectionName)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	if c.apiKey != "" {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.apiKey))
 	}
-	
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	return nil
 }
 
@@ -213,36 +213,36 @@ func (c *ChromaDB) CreateCollection(ctx context.Context, metadata map[string]int
 	payload := map[string]interface{}{
 		"name": c.collectionName,
 	}
-	
+
 	if metadata != nil {
 		payload["metadata"] = metadata
 	}
-	
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
-	
+
 	url := fmt.Sprintf("%s/api/v1/collections", c.url)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	if c.apiKey != "" {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.apiKey))
 	}
-	
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	return nil
 }

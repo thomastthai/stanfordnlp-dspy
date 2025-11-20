@@ -63,11 +63,11 @@ func NewUsageTracker() *UsageTracker {
 func (ut *UsageTracker) AddUsage(model string, entry *UsageEntry) {
 	ut.mu.Lock()
 	defer ut.mu.Unlock()
-	
+
 	if entry.Model == "" {
 		entry.Model = model
 	}
-	
+
 	ut.usageByModel[model] = append(ut.usageByModel[model], entry)
 }
 
@@ -75,12 +75,12 @@ func (ut *UsageTracker) AddUsage(model string, entry *UsageEntry) {
 func (ut *UsageTracker) GetUsage(model string) []*UsageEntry {
 	ut.mu.RLock()
 	defer ut.mu.RUnlock()
-	
+
 	entries, ok := ut.usageByModel[model]
 	if !ok {
 		return []*UsageEntry{}
 	}
-	
+
 	// Return a copy
 	result := make([]*UsageEntry, len(entries))
 	copy(result, entries)
@@ -91,31 +91,31 @@ func (ut *UsageTracker) GetUsage(model string) []*UsageEntry {
 func (ut *UsageTracker) GetTotalUsage() map[string]*UsageEntry {
 	ut.mu.RLock()
 	defer ut.mu.RUnlock()
-	
+
 	totals := make(map[string]*UsageEntry)
-	
+
 	for model, entries := range ut.usageByModel {
 		total := &UsageEntry{
 			Model: model,
 		}
-		
+
 		for _, entry := range entries {
 			total.PromptTokens += entry.PromptTokens
 			total.CompletionTokens += entry.CompletionTokens
 			total.TotalTokens += entry.TotalTokens
 			total.EstimatedCost += entry.EstimatedCost
 		}
-		
+
 		totals[model] = total
 	}
-	
+
 	return totals
 }
 
 // GetGrandTotal returns the grand total usage across all models.
 func (ut *UsageTracker) GetGrandTotal() *UsageEntry {
 	totals := ut.GetTotalUsage()
-	
+
 	grand := &UsageEntry{}
 	for _, total := range totals {
 		grand.PromptTokens += total.PromptTokens
@@ -123,7 +123,7 @@ func (ut *UsageTracker) GetGrandTotal() *UsageEntry {
 		grand.TotalTokens += total.TotalTokens
 		grand.EstimatedCost += total.EstimatedCost
 	}
-	
+
 	return grand
 }
 
@@ -131,13 +131,13 @@ func (ut *UsageTracker) GetGrandTotal() *UsageEntry {
 func (ut *UsageTracker) Export() ([]byte, error) {
 	ut.mu.RLock()
 	defer ut.mu.RUnlock()
-	
+
 	data := map[string]interface{}{
 		"usage_by_model": ut.usageByModel,
 		"totals":         ut.GetTotalUsage(),
 		"grand_total":    ut.GetGrandTotal(),
 	}
-	
+
 	return json.MarshalIndent(data, "", "  ")
 }
 
@@ -147,11 +147,11 @@ func (ut *UsageTracker) ExportToFile(path string) error {
 	if err != nil {
 		return fmt.Errorf("failed to export usage: %w", err)
 	}
-	
+
 	if err := os.WriteFile(path, data, 0644); err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -159,31 +159,31 @@ func (ut *UsageTracker) ExportToFile(path string) error {
 func (ut *UsageTracker) Import(data []byte) error {
 	ut.mu.Lock()
 	defer ut.mu.Unlock()
-	
+
 	var imported map[string]interface{}
 	if err := json.Unmarshal(data, &imported); err != nil {
 		return fmt.Errorf("failed to unmarshal usage data: %w", err)
 	}
-	
+
 	usageByModel, ok := imported["usage_by_model"].(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("invalid usage data format")
 	}
-	
+
 	ut.usageByModel = make(map[string][]*UsageEntry)
 	for model, entries := range usageByModel {
 		entryList, ok := entries.([]interface{})
 		if !ok {
 			continue
 		}
-		
+
 		ut.usageByModel[model] = make([]*UsageEntry, 0, len(entryList))
 		for _, e := range entryList {
 			entryMap, ok := e.(map[string]interface{})
 			if !ok {
 				continue
 			}
-			
+
 			entry := &UsageEntry{}
 			if v, ok := entryMap["prompt_tokens"].(float64); ok {
 				entry.PromptTokens = int(v)
@@ -200,11 +200,11 @@ func (ut *UsageTracker) Import(data []byte) error {
 			if v, ok := entryMap["model"].(string); ok {
 				entry.Model = v
 			}
-			
+
 			ut.usageByModel[model] = append(ut.usageByModel[model], entry)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -252,7 +252,7 @@ func EstimateCost(entry *UsageEntry, pricing ModelPricing) float64 {
 func (ut *UsageTracker) UpdateCosts(pricing map[string]ModelPricing) {
 	ut.mu.Lock()
 	defer ut.mu.Unlock()
-	
+
 	for model, entries := range ut.usageByModel {
 		if modelPricing, ok := pricing[model]; ok {
 			for _, entry := range entries {

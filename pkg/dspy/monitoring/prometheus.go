@@ -23,7 +23,7 @@ func NewPrometheusMonitor(namespace string) *PrometheusMonitor {
 	if namespace == "" {
 		namespace = "dspy"
 	}
-	
+
 	return &PrometheusMonitor{
 		requestDuration: promauto.NewHistogramVec(
 			prometheus.HistogramOpts{

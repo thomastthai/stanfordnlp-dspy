@@ -86,13 +86,13 @@ type AnthropicRequest struct {
 
 // AnthropicResponse represents an Anthropic API response.
 type AnthropicResponse struct {
-	ID         string                   `json:"id"`
-	Type       string                   `json:"type"`
-	Role       string                   `json:"role"`
-	Content    []AnthropicContentBlock  `json:"content"`
-	Model      string                   `json:"model"`
-	StopReason string                   `json:"stop_reason"`
-	Usage      AnthropicUsage           `json:"usage"`
+	ID         string                  `json:"id"`
+	Type       string                  `json:"type"`
+	Role       string                  `json:"role"`
+	Content    []AnthropicContentBlock `json:"content"`
+	Model      string                  `json:"model"`
+	StopReason string                  `json:"stop_reason"`
+	Usage      AnthropicUsage          `json:"usage"`
 }
 
 // AnthropicContentBlock represents a content block in the response.
@@ -233,11 +233,11 @@ func CountTokens(text string) int {
 
 // GetModelInfo returns information about the model.
 type ModelInfo struct {
-	Name           string
-	ContextWindow  int
-	MaxTokens      int
-	SupportsVision bool
-	CostPer1MInput float64
+	Name            string
+	ContextWindow   int
+	MaxTokens       int
+	SupportsVision  bool
+	CostPer1MInput  float64
 	CostPer1MOutput float64
 }
 

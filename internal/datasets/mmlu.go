@@ -34,12 +34,12 @@ func NewMMLU(ctx context.Context, opts MMLUOptions) (*MMLU, error) {
 		BaseDataset: base,
 		subjects:    opts.Subjects,
 	}
-	
+
 	// Load dataset
 	if err := dataset.load(ctx); err != nil {
 		return nil, err
 	}
-	
+
 	return dataset, nil
 }
 
@@ -64,7 +64,7 @@ func ConvertMMLUExample(raw MMLUExample) *primitives.Example {
 		"answer":   raw.Answer,
 		"subject":  raw.Subject,
 	}
-	
+
 	ex := primitives.NewExample(nil, data)
 	return ex.WithInputs("question", "choices")
 }
@@ -75,22 +75,22 @@ func MMLUMetric(gold, pred *primitives.Example) bool {
 	if !ok {
 		return false
 	}
-	
+
 	predAnswer, ok := pred.Get("answer")
 	if !ok {
 		return false
 	}
-	
+
 	goldStr, ok := goldAnswer.(string)
 	if !ok {
 		return false
 	}
-	
+
 	predStr, ok := predAnswer.(string)
 	if !ok {
 		return false
 	}
-	
+
 	return goldStr == predStr
 }
 

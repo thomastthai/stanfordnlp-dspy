@@ -57,15 +57,15 @@ func NewOpenAIEmbedder(config OpenAIConfig) (*OpenAIEmbedder, error) {
 	if config.APIKey == "" {
 		return nil, fmt.Errorf("OpenAI API key is required")
 	}
-	
+
 	if config.Model == "" {
 		config.Model = "text-embedding-3-small"
 	}
-	
+
 	if config.BaseURL == "" {
 		config.BaseURL = "https://api.openai.com/v1"
 	}
-	
+
 	// Set default dimensions based on model
 	if config.Dimension == 0 {
 		switch config.Model {
@@ -79,7 +79,7 @@ func NewOpenAIEmbedder(config OpenAIConfig) (*OpenAIEmbedder, error) {
 			config.Dimension = 1536
 		}
 	}
-	
+
 	return &OpenAIEmbedder{
 		apiKey:    config.APIKey,
 		model:     config.Model,
@@ -94,56 +94,56 @@ func (e *OpenAIEmbedder) Embed(ctx context.Context, texts []string) ([][]float32
 	if len(texts) == 0 {
 		return [][]float32{}, nil
 	}
-	
+
 	// Prepare request
 	reqBody := openAIRequest{
 		Input: texts,
 		Model: e.model,
 	}
-	
+
 	// Only set dimensions for text-embedding-3 models
 	if e.model == "text-embedding-3-small" || e.model == "text-embedding-3-large" {
 		reqBody.Dimensions = e.dimension
 	}
-	
+
 	bodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
-	
+
 	// Create HTTP request
 	url := fmt.Sprintf("%s/embeddings", e.baseURL)
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", e.apiKey))
-	
+
 	// Send request
 	resp, err := e.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	// Read response
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(respBody))
 	}
-	
+
 	// Parse response
 	var apiResp openAIResponse
 	if err := json.Unmarshal(respBody, &apiResp); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
-	
+
 	// Extract embeddings in correct order
 	embeddings := make([][]float32, len(texts))
 	for _, data := range apiResp.Data {
@@ -151,7 +151,7 @@ func (e *OpenAIEmbedder) Embed(ctx context.Context, texts []string) ([][]float32
 			embeddings[data.Index] = data.Embedding
 		}
 	}
-	
+
 	return embeddings, nil
 }
 

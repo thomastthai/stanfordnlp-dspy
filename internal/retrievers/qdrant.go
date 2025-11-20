@@ -54,12 +54,12 @@ func (q *Qdrant) Retrieve(ctx context.Context, query string, k int) ([]string, e
 	if err != nil {
 		return nil, err
 	}
-	
+
 	results := make([]string, len(docs))
 	for i, doc := range docs {
 		results[i] = doc.Content
 	}
-	
+
 	return results, nil
 }
 
@@ -76,37 +76,37 @@ func (q *Qdrant) SearchByVector(ctx context.Context, vector []float64, k int, fi
 		"vector": vector,
 		"limit":  k,
 	}
-	
+
 	if filter != nil {
 		payload["filter"] = filter
 	}
-	
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
-	
+
 	url := fmt.Sprintf("%s/collections/%s/points/search", q.url, q.collectionName)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	if q.apiKey != "" {
 		req.Header.Set("api-key", q.apiKey)
 	}
-	
+
 	resp, err := q.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	var result struct {
 		Result []struct {
 			ID      interface{}            `json:"id"`
@@ -114,35 +114,35 @@ func (q *Qdrant) SearchByVector(ctx context.Context, vector []float64, k int, fi
 			Payload map[string]interface{} `json:"payload"`
 		} `json:"result"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	docs := make([]Document, 0, len(result.Result))
 	for _, item := range result.Result {
 		doc := Document{
 			Score:    item.Score,
 			Metadata: item.Payload,
 		}
-		
+
 		// Extract ID
 		if id, ok := item.ID.(string); ok {
 			doc.ID = id
 		} else if id, ok := item.ID.(float64); ok {
 			doc.ID = fmt.Sprintf("%d", int(id))
 		}
-		
+
 		// Extract content from payload
 		if text, ok := item.Payload["text"].(string); ok {
 			doc.Content = text
 		} else if content, ok := item.Payload["content"].(string); ok {
 			doc.Content = content
 		}
-		
+
 		docs = append(docs, doc)
 	}
-	
+
 	return docs, nil
 }
 
@@ -151,33 +151,33 @@ func (q *Qdrant) UpsertPoints(ctx context.Context, points []QdrantPoint) error {
 	payload := map[string]interface{}{
 		"points": points,
 	}
-	
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal points: %w", err)
 	}
-	
+
 	url := fmt.Sprintf("%s/collections/%s/points", q.url, q.collectionName)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	if q.apiKey != "" {
 		req.Header.Set("api-key", q.apiKey)
 	}
-	
+
 	resp, err := q.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	return nil
 }
 
@@ -196,32 +196,32 @@ func (q *Qdrant) CreateCollection(ctx context.Context, vectorSize int, distance 
 			"distance": distance, // "Cosine", "Euclid", or "Dot"
 		},
 	}
-	
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
-	
+
 	url := fmt.Sprintf("%s/collections/%s", q.url, q.collectionName)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	if q.apiKey != "" {
 		req.Header.Set("api-key", q.apiKey)
 	}
-	
+
 	resp, err := q.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	return nil
 }

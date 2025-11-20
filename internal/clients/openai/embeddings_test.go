@@ -39,10 +39,10 @@ func TestEmbeddingModels(t *testing.T) {
 
 func TestGetEmbeddingModelInfo(t *testing.T) {
 	tests := []struct {
-		name       string
-		model      string
-		wantFound  bool
-		wantDims   int
+		name      string
+		model     string
+		wantFound bool
+		wantDims  int
 	}{
 		{
 			name:      "text-embedding-3-small",
@@ -98,8 +98,8 @@ func TestEmbeddingModelCosts(t *testing.T) {
 
 func TestEmbeddingModelDimensions(t *testing.T) {
 	tests := []struct {
-		model           string
-		expectedDims    int
+		model        string
+		expectedDims int
 	}{
 		{"text-embedding-3-small", 1536},
 		{"text-embedding-3-large", 3072},

@@ -10,12 +10,12 @@ type AsyncFunc func(ctx context.Context) (interface{}, error)
 
 // WorkerPool manages a pool of goroutines for concurrent execution.
 type WorkerPool struct {
-	maxWorkers  int
-	taskQueue   chan AsyncFunc
-	results     chan AsyncResult
-	ctx         context.Context
-	cancel      context.CancelFunc
-	wg          sync.WaitGroup
+	maxWorkers int
+	taskQueue  chan AsyncFunc
+	results    chan AsyncResult
+	ctx        context.Context
+	cancel     context.CancelFunc
+	wg         sync.WaitGroup
 }
 
 // AsyncResult represents the result of an asynchronous operation.
@@ -30,9 +30,9 @@ func NewWorkerPool(ctx context.Context, maxWorkers int) *WorkerPool {
 	if maxWorkers <= 0 {
 		maxWorkers = 1
 	}
-	
+
 	poolCtx, cancel := context.WithCancel(ctx)
-	
+
 	pool := &WorkerPool{
 		maxWorkers: maxWorkers,
 		taskQueue:  make(chan AsyncFunc, maxWorkers*2),
@@ -40,20 +40,20 @@ func NewWorkerPool(ctx context.Context, maxWorkers int) *WorkerPool {
 		ctx:        poolCtx,
 		cancel:     cancel,
 	}
-	
+
 	// Start workers
 	for i := 0; i < maxWorkers; i++ {
 		pool.wg.Add(1)
 		go pool.worker()
 	}
-	
+
 	return pool
 }
 
 // worker is the goroutine that processes tasks from the queue.
 func (wp *WorkerPool) worker() {
 	defer wp.wg.Done()
-	
+
 	for {
 		select {
 		case <-wp.ctx.Done():
@@ -62,7 +62,7 @@ func (wp *WorkerPool) worker() {
 			if !ok {
 				return
 			}
-			
+
 			result, err := task(wp.ctx)
 			select {
 			case wp.results <- AsyncResult{Value: result, Error: err}:
@@ -97,10 +97,10 @@ func (wp *WorkerPool) Close() {
 // Asyncify converts a synchronous function to run asynchronously.
 func Asyncify(ctx context.Context, fn func() (interface{}, error)) <-chan AsyncResult {
 	result := make(chan AsyncResult, 1)
-	
+
 	go func() {
 		defer close(result)
-		
+
 		value, err := fn()
 		select {
 		case result <- AsyncResult{Value: value, Error: err}:
@@ -108,7 +108,7 @@ func Asyncify(ctx context.Context, fn func() (interface{}, error)) <-chan AsyncR
 			result <- AsyncResult{Error: ctx.Err()}
 		}
 	}()
-	
+
 	return result
 }
 
@@ -117,10 +117,10 @@ func AsyncifyBatch(ctx context.Context, fns []func() (interface{}, error), maxWo
 	if len(fns) == 0 {
 		return []AsyncResult{}
 	}
-	
+
 	pool := NewWorkerPool(ctx, maxWorkers)
 	defer pool.Close()
-	
+
 	// Submit all tasks
 	for i, fn := range fns {
 		idx := i
@@ -133,7 +133,7 @@ func AsyncifyBatch(ctx context.Context, fns []func() (interface{}, error), maxWo
 			return AsyncResult{Value: result, Error: nil, Index: idx}, nil
 		})
 	}
-	
+
 	// Collect results
 	results := make([]AsyncResult, len(fns))
 	for i := 0; i < len(fns); i++ {
@@ -151,7 +151,7 @@ func AsyncifyBatch(ctx context.Context, fns []func() (interface{}, error), maxWo
 			return results
 		}
 	}
-	
+
 	return results
 }
 
@@ -160,20 +160,20 @@ func Parallel(ctx context.Context, fns ...func() (interface{}, error)) []AsyncRe
 	if len(fns) == 0 {
 		return []AsyncResult{}
 	}
-	
+
 	results := make([]AsyncResult, len(fns))
 	var wg sync.WaitGroup
-	
+
 	for i, fn := range fns {
 		wg.Add(1)
 		go func(idx int, f func() (interface{}, error)) {
 			defer wg.Done()
-			
+
 			value, err := f()
 			results[idx] = AsyncResult{Value: value, Error: err, Index: idx}
 		}(i, fn)
 	}
-	
+
 	wg.Wait()
 	return results
 }

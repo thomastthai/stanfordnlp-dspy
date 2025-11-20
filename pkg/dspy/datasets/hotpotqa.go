@@ -15,33 +15,33 @@ import (
 // HotPotQA represents the HotPotQA multi-hop question answering dataset.
 // Reference: https://hotpotqa.github.io/
 type HotPotQA struct {
-	mu           sync.RWMutex
+	mu            sync.RWMutex
 	trainExamples []Example
 	devExamples   []Example
 	testExamples  []Example
-	cacheDir     string
-	lazyLoad     bool
-	loaded       bool
-	setting      string // "distractor" or "fullwiki"
+	cacheDir      string
+	lazyLoad      bool
+	loaded        bool
+	setting       string // "distractor" or "fullwiki"
 }
 
 // HotPotQAConfig configures the HotPotQA dataset loader.
 type HotPotQAConfig struct {
-	CacheDir  string
-	LazyLoad  bool
-	Setting   string // "distractor" or "fullwiki"
-	OnlyHard  bool
+	CacheDir string
+	LazyLoad bool
+	Setting  string // "distractor" or "fullwiki"
+	OnlyHard bool
 }
 
 // hotPotQARaw represents a raw HotPotQA example from JSON.
 type hotPotQARaw struct {
-	ID              string       `json:"_id"`
-	Question        string       `json:"question"`
-	Answer          string       `json:"answer"`
-	Type            string       `json:"type"`
-	Level           string       `json:"level"`
+	ID              string          `json:"_id"`
+	Question        string          `json:"question"`
+	Answer          string          `json:"answer"`
+	Type            string          `json:"type"`
+	Level           string          `json:"level"`
 	SupportingFacts [][]interface{} `json:"supporting_facts"`
-	Context         [][]string   `json:"context"`
+	Context         [][]string      `json:"context"`
 }
 
 // NewHotPotQA creates a new HotPotQA dataset loader.
@@ -52,7 +52,7 @@ func NewHotPotQA(config HotPotQAConfig) *HotPotQA {
 	if config.Setting == "" {
 		config.Setting = "distractor"
 	}
-	
+
 	return &HotPotQA{
 		cacheDir: config.CacheDir,
 		lazyLoad: config.LazyLoad,
@@ -64,21 +64,21 @@ func NewHotPotQA(config HotPotQAConfig) *HotPotQA {
 func (h *HotPotQA) Load(ctx context.Context) ([]Example, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	
+
 	if h.loaded && !h.lazyLoad {
 		return append(append(h.trainExamples, h.devExamples...), h.testExamples...), nil
 	}
-	
+
 	// Load training data
 	if err := h.loadSplit(ctx, "train"); err != nil {
 		return nil, fmt.Errorf("failed to load train split: %w", err)
 	}
-	
+
 	// Load dev data
 	if err := h.loadSplit(ctx, "dev"); err != nil {
 		return nil, fmt.Errorf("failed to load dev split: %w", err)
 	}
-	
+
 	h.loaded = true
 	return append(h.trainExamples, h.devExamples...), nil
 }
@@ -91,11 +91,11 @@ func (h *HotPotQA) Train() ([]Example, error) {
 		return h.trainExamples, nil
 	}
 	h.mu.RUnlock()
-	
+
 	if err := h.loadSplit(context.Background(), "train"); err != nil {
 		return nil, err
 	}
-	
+
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return h.trainExamples, nil
@@ -109,11 +109,11 @@ func (h *HotPotQA) Dev() ([]Example, error) {
 		return h.devExamples, nil
 	}
 	h.mu.RUnlock()
-	
+
 	if err := h.loadSplit(context.Background(), "dev"); err != nil {
 		return nil, err
 	}
-	
+
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return h.devExamples, nil
@@ -129,17 +129,17 @@ func (h *HotPotQA) Len() int {
 // loadSplit loads a specific split from cache or downloads it.
 func (h *HotPotQA) loadSplit(ctx context.Context, split string) error {
 	cachePath := filepath.Join(h.cacheDir, fmt.Sprintf("%s_%s.json", split, h.setting))
-	
+
 	// Check if cached
 	if _, err := os.Stat(cachePath); err == nil {
 		return h.loadFromCache(cachePath, split)
 	}
-	
+
 	// Download if not cached
 	if err := h.download(ctx, split, cachePath); err != nil {
 		return fmt.Errorf("failed to download %s split: %w", split, err)
 	}
-	
+
 	return h.loadFromCache(cachePath, split)
 }
 
@@ -150,15 +150,15 @@ func (h *HotPotQA) loadFromCache(path string, split string) error {
 		return fmt.Errorf("failed to open cache file: %w", err)
 	}
 	defer file.Close()
-	
+
 	examples, err := h.parseJSON(file)
 	if err != nil {
 		return fmt.Errorf("failed to parse JSON: %w", err)
 	}
-	
+
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	
+
 	switch split {
 	case "train":
 		h.trainExamples = examples
@@ -167,7 +167,7 @@ func (h *HotPotQA) loadFromCache(path string, split string) error {
 	case "test":
 		h.testExamples = examples
 	}
-	
+
 	return nil
 }
 
@@ -177,7 +177,7 @@ func (h *HotPotQA) download(ctx context.Context, split string, destPath string) 
 	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
-	
+
 	// URL for HotPotQA dataset (this is a placeholder - actual URLs may vary)
 	var url string
 	if split == "train" {
@@ -187,45 +187,45 @@ func (h *HotPotQA) download(ctx context.Context, split string, destPath string) 
 	} else {
 		return fmt.Errorf("unknown split: %s", split)
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("download failed with status: %d", resp.StatusCode)
 	}
-	
+
 	// Save to cache
 	out, err := os.Create(destPath)
 	if err != nil {
 		return fmt.Errorf("failed to create cache file: %w", err)
 	}
 	defer out.Close()
-	
+
 	if _, err := io.Copy(out, resp.Body); err != nil {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
-	
+
 	return nil
 }
 
 // parseJSON parses HotPotQA JSON data.
 func (h *HotPotQA) parseJSON(r io.Reader) ([]Example, error) {
 	var rawExamples []hotPotQARaw
-	
+
 	decoder := json.NewDecoder(r)
 	if err := decoder.Decode(&rawExamples); err != nil {
 		return nil, fmt.Errorf("failed to decode JSON: %w", err)
 	}
-	
+
 	examples := make([]Example, 0, len(rawExamples))
 	for _, raw := range rawExamples {
 		// Convert context to string format
@@ -239,7 +239,7 @@ func (h *HotPotQA) parseJSON(r io.Reader) ([]Example, error) {
 				contextStr += "\n"
 			}
 		}
-		
+
 		// Extract supporting fact titles
 		goldTitles := make([]string, 0)
 		for _, fact := range raw.SupportingFacts {
@@ -249,7 +249,7 @@ func (h *HotPotQA) parseJSON(r io.Reader) ([]Example, error) {
 				}
 			}
 		}
-		
+
 		ex := Example{
 			ID: raw.ID,
 			Inputs: map[string]interface{}{
@@ -263,10 +263,10 @@ func (h *HotPotQA) parseJSON(r io.Reader) ([]Example, error) {
 				"level":       raw.Level,
 			},
 		}
-		
+
 		examples = append(examples, ex)
 	}
-	
+
 	return examples, nil
 }
 
@@ -274,7 +274,7 @@ func (h *HotPotQA) parseJSON(r io.Reader) ([]Example, error) {
 func (h *HotPotQA) Split(ratios ...float64) []Dataset {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	allExamples := append(append(h.trainExamples, h.devExamples...), h.testExamples...)
 	ds := NewInMemoryDataset("hotpotqa", allExamples)
 	return ds.Split(ratios...)
@@ -284,7 +284,7 @@ func (h *HotPotQA) Split(ratios ...float64) []Dataset {
 func (h *HotPotQA) Batch(size int) [][]Example {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	allExamples := append(append(h.trainExamples, h.devExamples...), h.testExamples...)
 	ds := NewInMemoryDataset("hotpotqa", allExamples)
 	return ds.Batch(size)
@@ -294,7 +294,7 @@ func (h *HotPotQA) Batch(size int) [][]Example {
 func (h *HotPotQA) Shuffle(seed int64) Dataset {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	allExamples := append(append(h.trainExamples, h.devExamples...), h.testExamples...)
 	ds := NewInMemoryDataset("hotpotqa", allExamples)
 	return ds.Shuffle(seed)
@@ -304,7 +304,7 @@ func (h *HotPotQA) Shuffle(seed int64) Dataset {
 func (h *HotPotQA) Filter(predicate func(Example) bool) Dataset {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	allExamples := append(append(h.trainExamples, h.devExamples...), h.testExamples...)
 	ds := NewInMemoryDataset("hotpotqa", allExamples)
 	return ds.Filter(predicate)
@@ -317,7 +317,7 @@ func LoadHotPotQAFromFile(path string) ([]Example, error) {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
-	
+
 	h := &HotPotQA{}
 	return h.parseJSON(bufio.NewReader(file))
 }

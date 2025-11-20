@@ -65,29 +65,29 @@ func NewCohereEmbedder(config CohereConfig) (*CohereEmbedder, error) {
 	if config.APIKey == "" {
 		return nil, fmt.Errorf("Cohere API key is required")
 	}
-	
+
 	if config.Model == "" {
 		config.Model = "embed-english-v3.0"
 	}
-	
+
 	if config.InputType == "" {
 		config.InputType = "search_document"
 	}
-	
+
 	if config.BaseURL == "" {
 		config.BaseURL = "https://api.cohere.ai/v1"
 	}
-	
+
 	if config.Compression == "" {
 		config.Compression = "none"
 	}
-	
+
 	// Determine dimension based on model
 	dimension := 1024
 	if config.Model == "embed-english-v3.0" || config.Model == "embed-multilingual-v3.0" {
 		dimension = 1024
 	}
-	
+
 	return &CohereEmbedder{
 		apiKey:      config.APIKey,
 		model:       config.Model,
@@ -104,7 +104,7 @@ func (e *CohereEmbedder) Embed(ctx context.Context, texts []string) ([][]float32
 	if len(texts) == 0 {
 		return [][]float32{}, nil
 	}
-	
+
 	// Prepare request
 	reqBody := cohereRequest{
 		Texts:     texts,
@@ -112,45 +112,45 @@ func (e *CohereEmbedder) Embed(ctx context.Context, texts []string) ([][]float32
 		InputType: e.inputType,
 		Truncate:  "END",
 	}
-	
+
 	bodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
-	
+
 	// Create HTTP request
 	url := fmt.Sprintf("%s/embed", e.baseURL)
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", e.apiKey))
-	
+
 	// Send request
 	resp, err := e.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	// Read response
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(respBody))
 	}
-	
+
 	// Parse response
 	var apiResp cohereResponse
 	if err := json.Unmarshal(respBody, &apiResp); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
-	
+
 	// Extract embeddings
 	embeddings := make([][]float32, len(texts))
 	for i, emb := range apiResp.Embeddings {
@@ -164,7 +164,7 @@ func (e *CohereEmbedder) Embed(ctx context.Context, texts []string) ([][]float32
 			embeddings[i] = emb.Values
 		}
 	}
-	
+
 	return embeddings, nil
 }
 

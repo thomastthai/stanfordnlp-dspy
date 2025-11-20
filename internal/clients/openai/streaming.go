@@ -24,10 +24,10 @@ type StreamChunk struct {
 
 // ChunkChoice represents a streaming choice.
 type ChunkChoice struct {
-	Index        int              `json:"index"`
-	Delta        ChunkDelta       `json:"delta"`
-	FinishReason *string          `json:"finish_reason"`
-	Logprobs     interface{}      `json:"logprobs,omitempty"`
+	Index        int         `json:"index"`
+	Delta        ChunkDelta  `json:"delta"`
+	FinishReason *string     `json:"finish_reason"`
+	Logprobs     interface{} `json:"logprobs,omitempty"`
 }
 
 // ChunkDelta represents the delta content in a streaming chunk.
@@ -99,7 +99,7 @@ func (c *Client) ChatCompletionStream(ctx context.Context, req ChatCompletionReq
 // parseSSEStream parses Server-Sent Events (SSE) stream.
 func parseSSEStream(ctx context.Context, reader io.Reader, chunkCh chan<- StreamChunk) error {
 	scanner := bufio.NewScanner(reader)
-	
+
 	for scanner.Scan() {
 		select {
 		case <-ctx.Done():
@@ -108,14 +108,14 @@ func parseSSEStream(ctx context.Context, reader io.Reader, chunkCh chan<- Stream
 		}
 
 		line := scanner.Text()
-		
+
 		// SSE lines start with "data: "
 		if !strings.HasPrefix(line, "data: ") {
 			continue
 		}
 
 		data := strings.TrimPrefix(line, "data: ")
-		
+
 		// Check for stream end marker
 		if data == "[DONE]" {
 			return nil

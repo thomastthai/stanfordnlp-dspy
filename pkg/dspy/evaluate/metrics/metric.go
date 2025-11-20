@@ -5,10 +5,10 @@ package metrics
 type Metric interface {
 	// Compute calculates the metric for a single prediction-reference pair
 	Compute(prediction string, reference string) float64
-	
+
 	// ComputeBatch calculates the metric for multiple pairs
 	ComputeBatch(predictions, references []string) []float64
-	
+
 	// Name returns the metric name
 	Name() string
 }
@@ -28,12 +28,12 @@ func (m *BaseMetric) ComputeBatch(predictions, references []string, computeFn fu
 	if len(predictions) != len(references) {
 		return nil
 	}
-	
+
 	scores := make([]float64, len(predictions))
 	for i := range predictions {
 		scores[i] = computeFn(predictions[i], references[i])
 	}
-	
+
 	return scores
 }
 

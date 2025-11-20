@@ -10,9 +10,9 @@ import (
 func Syncify(ctx context.Context, asyncFn func(context.Context) <-chan AsyncResult, timeout time.Duration) (interface{}, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	
+
 	resultChan := asyncFn(timeoutCtx)
-	
+
 	select {
 	case result := <-resultChan:
 		return result.Value, result.Error
@@ -34,7 +34,7 @@ func SyncifyWithDefault(ctx context.Context, asyncFn func(context.Context) <-cha
 func WaitFor(ctx context.Context, ch <-chan interface{}, timeout time.Duration) (interface{}, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	
+
 	select {
 	case value := <-ch:
 		return value, nil
@@ -50,9 +50,9 @@ func WaitFor(ctx context.Context, ch <-chan interface{}, timeout time.Duration) 
 func WaitAll(ctx context.Context, channels []<-chan interface{}, timeout time.Duration) ([]interface{}, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	
+
 	results := make([]interface{}, len(channels))
-	
+
 	for i, ch := range channels {
 		select {
 		case value := <-ch:
@@ -64,7 +64,7 @@ func WaitAll(ctx context.Context, channels []<-chan interface{}, timeout time.Du
 			return results, timeoutCtx.Err()
 		}
 	}
-	
+
 	return results, nil
 }
 
@@ -72,13 +72,13 @@ func WaitAll(ctx context.Context, channels []<-chan interface{}, timeout time.Du
 func WaitAny(ctx context.Context, channels []<-chan interface{}, timeout time.Duration) (interface{}, int, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	
+
 	// Create a single channel that receives from all input channels
 	merged := make(chan struct {
 		value interface{}
 		index int
 	}, len(channels))
-	
+
 	for i, ch := range channels {
 		idx := i
 		c := ch
@@ -93,7 +93,7 @@ func WaitAny(ctx context.Context, channels []<-chan interface{}, timeout time.Du
 			}
 		}()
 	}
-	
+
 	select {
 	case result := <-merged:
 		return result.value, result.index, nil

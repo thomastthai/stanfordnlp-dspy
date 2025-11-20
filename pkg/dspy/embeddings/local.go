@@ -27,7 +27,7 @@ func NewLocalEmbedder(config LocalConfig) (*LocalEmbedder, error) {
 	if config.Model == "" {
 		config.Model = "all-MiniLM-L6-v2"
 	}
-	
+
 	// Set default dimensions based on model
 	if config.Dimension == 0 {
 		switch config.Model {
@@ -39,7 +39,7 @@ func NewLocalEmbedder(config LocalConfig) (*LocalEmbedder, error) {
 			config.Dimension = 384
 		}
 	}
-	
+
 	return &LocalEmbedder{
 		model:     config.Model,
 		dimension: config.Dimension,
@@ -53,12 +53,12 @@ func (e *LocalEmbedder) Embed(ctx context.Context, texts []string) ([][]float32,
 	if len(texts) == 0 {
 		return [][]float32{}, nil
 	}
-	
+
 	embeddings := make([][]float32, len(texts))
 	for i, text := range texts {
 		embeddings[i] = e.generatePlaceholderEmbedding(text)
 	}
-	
+
 	return embeddings, nil
 }
 
@@ -69,9 +69,9 @@ func (e *LocalEmbedder) generatePlaceholderEmbedding(text string) []float32 {
 	h := fnv.New64a()
 	h.Write([]byte(text))
 	seed := h.Sum64()
-	
+
 	embedding := make([]float32, e.dimension)
-	
+
 	// Generate pseudo-random but deterministic values
 	for i := 0; i < e.dimension; i++ {
 		// Use simple linear congruential generator
@@ -80,20 +80,20 @@ func (e *LocalEmbedder) generatePlaceholderEmbedding(text string) []float32 {
 		// Normalize to [-1, 1]
 		embedding[i] = float32(val*2.0 - 1.0)
 	}
-	
+
 	// Normalize to unit vector
 	norm := float32(0.0)
 	for _, v := range embedding {
 		norm += v * v
 	}
 	norm = float32(math.Sqrt(float64(norm)))
-	
+
 	if norm > 0 {
 		for i := range embedding {
 			embedding[i] /= norm
 		}
 	}
-	
+
 	return embedding
 }
 
@@ -108,7 +108,7 @@ func (e *LocalEmbedder) MaxBatchSize() int {
 }
 
 // NOTE: For production use with real sentence transformers:
-// 
+//
 // 1. Use ONNX Runtime Go bindings:
 //    - github.com/yalue/onnxruntime_go
 //
@@ -131,12 +131,12 @@ func (e *LocalEmbedder) MaxBatchSize() int {
 // func (e *LocalEmbedder) embedWithONNX(text string) ([]float32, error) {
 //     tokens := e.tokenizer.Tokenize(text)
 //     inputIDs, attentionMask := e.tokenizer.Encode(tokens)
-//     
+//
 //     outputs, err := e.onnxSession.Run(map[string][]float32{
 //         "input_ids": inputIDs,
 //         "attention_mask": attentionMask,
 //     })
-//     
+//
 //     embedding := meanPooling(outputs["last_hidden_state"], attentionMask)
 //     return normalize(embedding), nil
 // }

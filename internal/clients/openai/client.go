@@ -87,32 +87,32 @@ func retryPolicy(ctx context.Context, resp *http.Response, err error) (bool, err
 
 // ChatCompletionRequest represents an OpenAI chat completion request.
 type ChatCompletionRequest struct {
-	Model            string                   `json:"model"`
-	Messages         []ChatMessage            `json:"messages"`
-	Temperature      *float64                 `json:"temperature,omitempty"`
-	MaxTokens        *int                     `json:"max_tokens,omitempty"`
-	TopP             *float64                 `json:"top_p,omitempty"`
-	N                *int                     `json:"n,omitempty"`
-	Stream           bool                     `json:"stream,omitempty"`
-	Stop             []string                 `json:"stop,omitempty"`
-	PresencePenalty  *float64                 `json:"presence_penalty,omitempty"`
-	FrequencyPenalty *float64                 `json:"frequency_penalty,omitempty"`
-	LogitBias        map[string]float64       `json:"logit_bias,omitempty"`
-	User             string                   `json:"user,omitempty"`
-	Functions        []FunctionDefinition     `json:"functions,omitempty"`
-	FunctionCall     interface{}              `json:"function_call,omitempty"`
-	Tools            []Tool                   `json:"tools,omitempty"`
-	ToolChoice       interface{}              `json:"tool_choice,omitempty"`
-	ResponseFormat   *ResponseFormat          `json:"response_format,omitempty"`
+	Model            string               `json:"model"`
+	Messages         []ChatMessage        `json:"messages"`
+	Temperature      *float64             `json:"temperature,omitempty"`
+	MaxTokens        *int                 `json:"max_tokens,omitempty"`
+	TopP             *float64             `json:"top_p,omitempty"`
+	N                *int                 `json:"n,omitempty"`
+	Stream           bool                 `json:"stream,omitempty"`
+	Stop             []string             `json:"stop,omitempty"`
+	PresencePenalty  *float64             `json:"presence_penalty,omitempty"`
+	FrequencyPenalty *float64             `json:"frequency_penalty,omitempty"`
+	LogitBias        map[string]float64   `json:"logit_bias,omitempty"`
+	User             string               `json:"user,omitempty"`
+	Functions        []FunctionDefinition `json:"functions,omitempty"`
+	FunctionCall     interface{}          `json:"function_call,omitempty"`
+	Tools            []Tool               `json:"tools,omitempty"`
+	ToolChoice       interface{}          `json:"tool_choice,omitempty"`
+	ResponseFormat   *ResponseFormat      `json:"response_format,omitempty"`
 }
 
 // ChatMessage represents a chat message.
 type ChatMessage struct {
-	Role       string      `json:"role"`
-	Content    string      `json:"content"`
-	Name       string      `json:"name,omitempty"`
-	ToolCalls  []ToolCall  `json:"tool_calls,omitempty"`
-	ToolCallID string      `json:"tool_call_id,omitempty"`
+	Role       string     `json:"role"`
+	Content    string     `json:"content"`
+	Name       string     `json:"name,omitempty"`
+	ToolCalls  []ToolCall `json:"tool_calls,omitempty"`
+	ToolCallID string     `json:"tool_call_id,omitempty"`
 }
 
 // ToolCall represents a tool call.

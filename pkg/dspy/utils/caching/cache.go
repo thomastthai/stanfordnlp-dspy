@@ -11,16 +11,16 @@ import (
 type Cache interface {
 	// Get retrieves a value from the cache
 	Get(key string) (interface{}, bool)
-	
+
 	// Set stores a value in the cache
 	Set(key string, value interface{}, ttl time.Duration)
-	
+
 	// Delete removes a value from the cache
 	Delete(key string)
-	
+
 	// Clear removes all values from the cache
 	Clear()
-	
+
 	// Len returns the number of cached items
 	Len() int
 }
@@ -42,10 +42,10 @@ func NewSimpleCache() *SimpleCache {
 	c := &SimpleCache{
 		items: make(map[string]cacheEntry),
 	}
-	
+
 	// Start cleanup goroutine
 	go c.cleanupLoop(context.Background())
-	
+
 	return c
 }
 
@@ -53,17 +53,17 @@ func NewSimpleCache() *SimpleCache {
 func (c *SimpleCache) Get(key string) (interface{}, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	entry, ok := c.items[key]
 	if !ok {
 		return nil, false
 	}
-	
+
 	// Check expiration
 	if !entry.expiration.IsZero() && time.Now().After(entry.expiration) {
 		return nil, false
 	}
-	
+
 	return entry.value, true
 }
 
@@ -71,15 +71,15 @@ func (c *SimpleCache) Get(key string) (interface{}, bool) {
 func (c *SimpleCache) Set(key string, value interface{}, ttl time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	entry := cacheEntry{
 		value: value,
 	}
-	
+
 	if ttl > 0 {
 		entry.expiration = time.Now().Add(ttl)
 	}
-	
+
 	c.items[key] = entry
 }
 
@@ -87,7 +87,7 @@ func (c *SimpleCache) Set(key string, value interface{}, ttl time.Duration) {
 func (c *SimpleCache) Delete(key string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	delete(c.items, key)
 }
 
@@ -95,7 +95,7 @@ func (c *SimpleCache) Delete(key string) {
 func (c *SimpleCache) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.items = make(map[string]cacheEntry)
 }
 
@@ -103,7 +103,7 @@ func (c *SimpleCache) Clear() {
 func (c *SimpleCache) Len() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	return len(c.items)
 }
 
@@ -111,7 +111,7 @@ func (c *SimpleCache) Len() int {
 func (c *SimpleCache) cleanupLoop(ctx context.Context) {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -126,7 +126,7 @@ func (c *SimpleCache) cleanupLoop(ctx context.Context) {
 func (c *SimpleCache) cleanup() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	now := time.Now()
 	for key, entry := range c.items {
 		if !entry.expiration.IsZero() && now.After(entry.expiration) {

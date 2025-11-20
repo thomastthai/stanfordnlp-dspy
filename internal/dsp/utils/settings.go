@@ -153,7 +153,7 @@ func (s *Settings) GetAsyncMaxWorkers() int {
 func (s *Settings) Copy() *Settings {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	
+
 	return &Settings{
 		LM:              s.LM,
 		RM:              s.RM,

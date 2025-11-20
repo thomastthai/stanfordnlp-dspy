@@ -25,7 +25,7 @@ var modelPricing = map[string]ModelPricing{
 		PromptPrice:     10.0,
 		CompletionPrice: 30.0,
 	},
-	
+
 	// OpenAI GPT-3.5
 	"gpt-3.5-turbo": {
 		PromptPrice:     0.5,
@@ -35,7 +35,7 @@ var modelPricing = map[string]ModelPricing{
 		PromptPrice:     3.0,
 		CompletionPrice: 4.0,
 	},
-	
+
 	// OpenAI GPT-4o
 	"gpt-4o": {
 		PromptPrice:     5.0,
@@ -45,7 +45,7 @@ var modelPricing = map[string]ModelPricing{
 		PromptPrice:     0.15,
 		CompletionPrice: 0.6,
 	},
-	
+
 	// Anthropic Claude
 	"claude-3-opus": {
 		PromptPrice:     15.0,
@@ -63,7 +63,7 @@ var modelPricing = map[string]ModelPricing{
 		PromptPrice:     3.0,
 		CompletionPrice: 15.0,
 	},
-	
+
 	// OpenAI Embeddings
 	"text-embedding-ada-002": {
 		PromptPrice:     0.1,
@@ -77,7 +77,7 @@ var modelPricing = map[string]ModelPricing{
 		PromptPrice:     0.13,
 		CompletionPrice: 0.0,
 	},
-	
+
 	// Cohere
 	"command": {
 		PromptPrice:     1.0,
@@ -99,11 +99,11 @@ func CalculateCost(model string, promptTokens, completionTokens int) float64 {
 			CompletionPrice: 2.0,
 		}
 	}
-	
+
 	// Convert tokens to millions and calculate cost
 	promptCost := float64(promptTokens) / 1_000_000.0 * pricing.PromptPrice
 	completionCost := float64(completionTokens) / 1_000_000.0 * pricing.CompletionPrice
-	
+
 	return promptCost + completionCost
 }
 

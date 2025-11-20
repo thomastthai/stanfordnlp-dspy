@@ -12,15 +12,18 @@ import (
 type Dataset interface {
 	// Train returns the training examples
 	Train() []*primitives.Example
-	
+
 	// Dev returns the development/validation examples
 	Dev() []*primitives.Example
-	
+
 	// Test returns the test examples
 	Test() []*primitives.Example
-	
+
 	// Name returns the dataset name
 	Name() string
+
+	// Len returns the total number of examples across all splits
+	Len() int
 }
 
 // BaseDataset provides common functionality for datasets.
@@ -90,6 +93,11 @@ func (d *BaseDataset) Name() string {
 	return d.name
 }
 
+// Len implements Dataset.Len.
+func (d *BaseDataset) Len() int {
+	return len(d.train) + len(d.dev) + len(d.test)
+}
+
 // SetTrain sets the training examples.
 func (d *BaseDataset) SetTrain(examples []*primitives.Example) {
 	d.train = d.applySizeAndShuffle(examples, d.trainSize, d.trainSeed)
@@ -109,7 +117,7 @@ func (d *BaseDataset) applySizeAndShuffle(examples []*primitives.Example, size i
 	if len(examples) == 0 {
 		return examples
 	}
-	
+
 	// Shuffle if seed is set
 	if seed != 0 {
 		r := rand.New(rand.NewSource(seed))
@@ -120,12 +128,12 @@ func (d *BaseDataset) applySizeAndShuffle(examples []*primitives.Example, size i
 		})
 		examples = shuffled
 	}
-	
+
 	// Apply size limit
 	if size > 0 && size < len(examples) {
 		examples = examples[:size]
 	}
-	
+
 	return examples
 }
 
@@ -137,17 +145,17 @@ func SplitData(examples []*primitives.Example, trainRatio, devRatio float64) (tr
 	total := len(examples)
 	trainEnd := int(float64(total) * trainRatio)
 	devEnd := trainEnd + int(float64(total)*devRatio)
-	
+
 	if trainEnd > total {
 		trainEnd = total
 	}
 	if devEnd > total {
 		devEnd = total
 	}
-	
+
 	train = examples[:trainEnd]
 	dev = examples[trainEnd:devEnd]
 	test = examples[devEnd:]
-	
+
 	return train, dev, test
 }

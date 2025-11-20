@@ -104,10 +104,10 @@ type StreamTransformer func(interface{}) (interface{}, error)
 // Transform applies a transformation to each item in the stream.
 func (s *Stream) Transform(transformer StreamTransformer) *Stream {
 	output := NewStream(s.ctx, cap(s.ch))
-	
+
 	go func() {
 		defer output.Close()
-		
+
 		for {
 			item, err := s.Next()
 			if errors.Is(err, io.EOF) {
@@ -117,29 +117,29 @@ func (s *Stream) Transform(transformer StreamTransformer) *Stream {
 				output.SendError(err)
 				break
 			}
-			
+
 			transformed, err := transformer(item)
 			if err != nil {
 				output.SendError(err)
 				break
 			}
-			
+
 			if err := output.Send(transformed); err != nil {
 				break
 			}
 		}
 	}()
-	
+
 	return output
 }
 
 // Filter filters stream items based on a predicate.
 func (s *Stream) Filter(predicate func(interface{}) bool) *Stream {
 	output := NewStream(s.ctx, cap(s.ch))
-	
+
 	go func() {
 		defer output.Close()
-		
+
 		for {
 			item, err := s.Next()
 			if errors.Is(err, io.EOF) {
@@ -149,7 +149,7 @@ func (s *Stream) Filter(predicate func(interface{}) bool) *Stream {
 				output.SendError(err)
 				break
 			}
-			
+
 			if predicate(item) {
 				if err := output.Send(item); err != nil {
 					break
@@ -157,21 +157,21 @@ func (s *Stream) Filter(predicate func(interface{}) bool) *Stream {
 			}
 		}
 	}()
-	
+
 	return output
 }
 
 // Merge merges multiple streams into one.
 func Merge(ctx context.Context, streams ...*Stream) *Stream {
 	output := NewStream(ctx, 10)
-	
+
 	go func() {
 		defer output.Close()
-		
+
 		// Create a channel to collect items from all streams
 		merged := make(chan StreamItem, len(streams))
 		done := make(chan struct{})
-		
+
 		// Start a goroutine for each stream
 		for _, stream := range streams {
 			go func(s *Stream) {
@@ -180,14 +180,14 @@ func Merge(ctx context.Context, streams ...*Stream) *Stream {
 					if errors.Is(err, io.EOF) {
 						break
 					}
-					
+
 					var streamItem StreamItem
 					if err != nil {
 						streamItem = StreamItem{Error: err}
 					} else {
 						streamItem = StreamItem{Data: item}
 					}
-					
+
 					select {
 					case merged <- streamItem:
 					case <-done:
@@ -198,7 +198,7 @@ func Merge(ctx context.Context, streams ...*Stream) *Stream {
 				}
 			}(stream)
 		}
-		
+
 		// Collect items from merged channel
 		activeStreams := len(streams)
 		for activeStreams > 0 {
@@ -217,19 +217,19 @@ func Merge(ctx context.Context, streams ...*Stream) *Stream {
 			}
 		}
 	}()
-	
+
 	return output
 }
 
 // Batch batches stream items.
 func (s *Stream) Batch(batchSize int) *Stream {
 	output := NewStream(s.ctx, cap(s.ch)/batchSize+1)
-	
+
 	go func() {
 		defer output.Close()
-		
+
 		batch := make([]interface{}, 0, batchSize)
-		
+
 		for {
 			item, err := s.Next()
 			if errors.Is(err, io.EOF) {
@@ -242,7 +242,7 @@ func (s *Stream) Batch(batchSize int) *Stream {
 				output.SendError(err)
 				break
 			}
-			
+
 			batch = append(batch, item)
 			if len(batch) >= batchSize {
 				if err := output.Send(batch); err != nil {
@@ -252,7 +252,7 @@ func (s *Stream) Batch(batchSize int) *Stream {
 			}
 		}
 	}()
-	
+
 	return output
 }
 
@@ -260,11 +260,11 @@ func (s *Stream) Batch(batchSize int) *Stream {
 func (s *Stream) Tee() (*Stream, *Stream) {
 	out1 := NewStream(s.ctx, cap(s.ch))
 	out2 := NewStream(s.ctx, cap(s.ch))
-	
+
 	go func() {
 		defer out1.Close()
 		defer out2.Close()
-		
+
 		for {
 			item, err := s.Next()
 			if errors.Is(err, io.EOF) {
@@ -275,7 +275,7 @@ func (s *Stream) Tee() (*Stream, *Stream) {
 				out2.SendError(err)
 				break
 			}
-			
+
 			// Send to both outputs
 			if err := out1.Send(item); err != nil {
 				break
@@ -285,6 +285,6 @@ func (s *Stream) Tee() (*Stream, *Stream) {
 			}
 		}
 	}()
-	
+
 	return out1, out2
 }

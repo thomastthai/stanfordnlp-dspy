@@ -36,19 +36,19 @@ func DefaultHotPotQAOptions() HotPotQAOptions {
 
 // HotPotQARawExample represents a raw example from the dataset.
 type HotPotQARawExample struct {
-	ID              string              `json:"_id"`
-	Question        string              `json:"question"`
-	Answer          string              `json:"answer"`
-	Type            string              `json:"type"`
-	Level           string              `json:"level"`
-	SupportingFacts SupportingFacts     `json:"supporting_facts"`
-	Context         [][]string          `json:"context"`
+	ID              string          `json:"_id"`
+	Question        string          `json:"question"`
+	Answer          string          `json:"answer"`
+	Type            string          `json:"type"`
+	Level           string          `json:"level"`
+	SupportingFacts SupportingFacts `json:"supporting_facts"`
+	Context         [][]string      `json:"context"`
 }
 
 // SupportingFacts contains the titles and sentence indices of supporting facts.
 type SupportingFacts struct {
-	Title    []string `json:"title"`
-	SentIdx  []int    `json:"sent_id"`
+	Title   []string `json:"title"`
+	SentIdx []int    `json:"sent_id"`
 }
 
 // NewHotPotQA creates a new HotPotQA dataset loader.
@@ -56,20 +56,20 @@ func NewHotPotQA(ctx context.Context, opts HotPotQAOptions) (*HotPotQA, error) {
 	if !opts.OnlyHardExamples {
 		return nil, fmt.Errorf("only hard examples are currently supported")
 	}
-	
+
 	base := NewBaseDataset("hotpotqa", opts.DatasetOptions)
 	dataset := &HotPotQA{
 		BaseDataset:      base,
 		onlyHardExamples: opts.OnlyHardExamples,
 		keepDetails:      opts.KeepDetails,
 	}
-	
+
 	// Load training data
 	trainExamples, err := dataset.loadSplit(ctx, "train", opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load train split: %w", err)
 	}
-	
+
 	// Split training data into train/dev
 	if opts.UnofficialDev {
 		splitPoint := len(trainExamples) * 75 / 100
@@ -78,14 +78,14 @@ func NewHotPotQA(ctx context.Context, opts HotPotQAOptions) (*HotPotQA, error) {
 	} else {
 		dataset.SetTrain(trainExamples)
 	}
-	
+
 	// Load test data (official validation set)
 	testExamples, err := dataset.loadSplit(ctx, "validation", opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load validation split: %w", err)
 	}
 	dataset.SetTest(testExamples)
-	
+
 	return dataset, nil
 }
 
@@ -99,7 +99,7 @@ func (h *HotPotQA) loadSplit(ctx context.Context, split string, opts HotPotQAOpt
 // ProcessRawExample converts a raw HotPotQA example to a DSPy Example.
 func ProcessRawExample(raw HotPotQARawExample, keepDetails string) *primitives.Example {
 	data := make(map[string]interface{})
-	
+
 	// Determine which fields to keep
 	var keys []string
 	if keepDetails == "true" {
@@ -109,7 +109,7 @@ func ProcessRawExample(raw HotPotQARawExample, keepDetails string) *primitives.E
 	} else {
 		keys = []string{"question", "answer"}
 	}
-	
+
 	// Extract requested fields
 	for _, key := range keys {
 		switch key {
@@ -130,7 +130,7 @@ func ProcessRawExample(raw HotPotQARawExample, keepDetails string) *primitives.E
 			data["context"] = raw.Context
 		}
 	}
-	
+
 	ex := primitives.NewExample(nil, data)
 	return ex.WithInputs("question")
 }
@@ -142,18 +142,18 @@ func LoadHotPotQAFromJSON(r io.Reader, keepDetails string, onlyHard bool) ([]*pr
 	if err := decoder.Decode(&rawExamples); err != nil {
 		return nil, fmt.Errorf("failed to decode JSON: %w", err)
 	}
-	
+
 	examples := make([]*primitives.Example, 0, len(rawExamples))
 	for _, raw := range rawExamples {
 		// Filter by difficulty level
 		if onlyHard && raw.Level != "hard" {
 			continue
 		}
-		
+
 		ex := ProcessRawExample(raw, keepDetails)
 		examples = append(examples, ex)
 	}
-	
+
 	return examples, nil
 }
 
@@ -164,22 +164,22 @@ func HotPotQAMetric(gold, pred *primitives.Example) float64 {
 	if !ok {
 		return 0.0
 	}
-	
+
 	predAnswer, ok := pred.Get("answer")
 	if !ok {
 		return 0.0
 	}
-	
+
 	goldStr, ok := goldAnswer.(string)
 	if !ok {
 		return 0.0
 	}
-	
+
 	predStr, ok := predAnswer.(string)
 	if !ok {
 		return 0.0
 	}
-	
+
 	// Simple exact match (could be extended with F1 score)
 	if goldStr == predStr {
 		return 1.0

@@ -32,19 +32,19 @@ func NewExample(id string, inputs, labels map[string]interface{}) *Example {
 type Dataset interface {
 	// Load returns all examples in the dataset
 	Load(ctx context.Context) ([]Example, error)
-	
+
 	// Len returns the number of examples
 	Len() int
-	
+
 	// Split divides the dataset into multiple parts based on ratios
 	Split(ratios ...float64) []Dataset
-	
+
 	// Batch returns examples in batches of the specified size
 	Batch(size int) [][]Example
-	
+
 	// Shuffle randomly shuffles the dataset
 	Shuffle(seed int64) Dataset
-	
+
 	// Filter returns a new dataset with examples that match the predicate
 	Filter(predicate func(Example) bool) Dataset
 }
@@ -78,32 +78,32 @@ func (d *InMemoryDataset) Split(ratios ...float64) []Dataset {
 	if len(ratios) == 0 {
 		return []Dataset{d}
 	}
-	
+
 	// Normalize ratios
 	total := 0.0
 	for _, r := range ratios {
 		total += r
 	}
-	
+
 	datasets := make([]Dataset, len(ratios))
 	start := 0
-	
+
 	for i, ratio := range ratios {
 		size := int(float64(len(d.examples)) * ratio / total)
 		if i == len(ratios)-1 {
 			// Last split gets remaining examples
 			size = len(d.examples) - start
 		}
-		
+
 		end := start + size
 		if end > len(d.examples) {
 			end = len(d.examples)
 		}
-		
+
 		datasets[i] = NewInMemoryDataset(d.name, d.examples[start:end])
 		start = end
 	}
-	
+
 	return datasets
 }
 
@@ -112,7 +112,7 @@ func (d *InMemoryDataset) Batch(size int) [][]Example {
 	if size <= 0 {
 		size = 1
 	}
-	
+
 	batches := make([][]Example, 0, (len(d.examples)+size-1)/size)
 	for i := 0; i < len(d.examples); i += size {
 		end := i + size
@@ -121,7 +121,7 @@ func (d *InMemoryDataset) Batch(size int) [][]Example {
 		}
 		batches = append(batches, d.examples[i:end])
 	}
-	
+
 	return batches
 }
 
@@ -129,12 +129,12 @@ func (d *InMemoryDataset) Batch(size int) [][]Example {
 func (d *InMemoryDataset) Shuffle(seed int64) Dataset {
 	shuffled := make([]Example, len(d.examples))
 	copy(shuffled, d.examples)
-	
+
 	r := rand.New(rand.NewSource(seed))
 	r.Shuffle(len(shuffled), func(i, j int) {
 		shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
 	})
-	
+
 	return NewInMemoryDataset(d.name, shuffled)
 }
 
@@ -146,7 +146,7 @@ func (d *InMemoryDataset) Filter(predicate func(Example) bool) Dataset {
 			filtered = append(filtered, ex)
 		}
 	}
-	
+
 	return NewInMemoryDataset(d.name, filtered)
 }
 

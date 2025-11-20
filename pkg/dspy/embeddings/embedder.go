@@ -11,10 +11,10 @@ import (
 type Embedder interface {
 	// Embed generates embeddings for the given texts
 	Embed(ctx context.Context, texts []string) ([][]float32, error)
-	
+
 	// Dimension returns the dimensionality of the embeddings
 	Dimension() int
-	
+
 	// MaxBatchSize returns the maximum batch size supported
 	MaxBatchSize() int
 }
@@ -23,13 +23,13 @@ type Embedder interface {
 type EmbeddingCache interface {
 	// Get retrieves an embedding from the cache
 	Get(text string) ([]float32, bool)
-	
+
 	// Set stores an embedding in the cache
 	Set(text string, embedding []float32)
-	
+
 	// Clear removes all entries from the cache
 	Clear()
-	
+
 	// Size returns the number of cached embeddings
 	Size() int
 }
@@ -98,7 +98,7 @@ func (c *CachedEmbedder) Embed(ctx context.Context, texts []string) ([][]float32
 	results := make([][]float32, len(texts))
 	uncachedIndices := make([]int, 0)
 	uncachedTexts := make([]string, 0)
-	
+
 	// Check cache
 	for i, text := range texts {
 		if emb, ok := c.cache.Get(text); ok {
@@ -108,21 +108,21 @@ func (c *CachedEmbedder) Embed(ctx context.Context, texts []string) ([][]float32
 			uncachedTexts = append(uncachedTexts, text)
 		}
 	}
-	
+
 	// Generate embeddings for uncached texts
 	if len(uncachedTexts) > 0 {
 		embeddings, err := c.embedder.Embed(ctx, uncachedTexts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate embeddings: %w", err)
 		}
-		
+
 		// Store in cache and results
 		for i, idx := range uncachedIndices {
 			c.cache.Set(uncachedTexts[i], embeddings[i])
 			results[idx] = embeddings[i]
 		}
 	}
-	
+
 	return results, nil
 }
 
@@ -158,25 +158,25 @@ func (b *BatchEmbedder) Embed(ctx context.Context, texts []string) ([][]float32,
 	if len(texts) == 0 {
 		return [][]float32{}, nil
 	}
-	
+
 	results := make([][]float32, 0, len(texts))
-	
+
 	// Process in batches
 	for i := 0; i < len(texts); i += b.batchSize {
 		end := i + b.batchSize
 		if end > len(texts) {
 			end = len(texts)
 		}
-		
+
 		batch := texts[i:end]
 		embeddings, err := b.embedder.Embed(ctx, batch)
 		if err != nil {
 			return nil, fmt.Errorf("failed to embed batch: %w", err)
 		}
-		
+
 		results = append(results, embeddings...)
 	}
-	
+
 	return results, nil
 }
 

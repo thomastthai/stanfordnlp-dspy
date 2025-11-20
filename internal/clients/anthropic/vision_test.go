@@ -86,8 +86,8 @@ func TestGetMediaTypeFromPath(t *testing.T) {
 		{"image.gif", "image/gif"},
 		{"image.webp", "image/webp"},
 		{"IMAGE.JPG", "image/jpeg"}, // Case insensitive
-		{"image.txt", ""},            // Unsupported
-		{"image", ""},                // No extension
+		{"image.txt", ""},           // Unsupported
+		{"image", ""},               // No extension
 	}
 
 	for _, tt := range tests {

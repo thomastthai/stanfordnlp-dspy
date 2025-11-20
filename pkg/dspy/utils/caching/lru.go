@@ -19,7 +19,7 @@ func NewLRUCache(size int) (*LRUCache, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &LRUCache{
 		cache: cache,
 	}, nil
@@ -29,7 +29,7 @@ func NewLRUCache(size int) (*LRUCache, error) {
 func (c *LRUCache) Get(key string) (interface{}, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	return c.cache.Get(key)
 }
 
@@ -38,7 +38,7 @@ func (c *LRUCache) Get(key string) (interface{}, bool) {
 func (c *LRUCache) Set(key string, value interface{}, ttl time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.cache.Add(key, value)
 }
 
@@ -46,7 +46,7 @@ func (c *LRUCache) Set(key string, value interface{}, ttl time.Duration) {
 func (c *LRUCache) Delete(key string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.cache.Remove(key)
 }
 
@@ -54,7 +54,7 @@ func (c *LRUCache) Delete(key string) {
 func (c *LRUCache) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.cache.Purge()
 }
 
@@ -62,6 +62,6 @@ func (c *LRUCache) Clear() {
 func (c *LRUCache) Len() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	return c.cache.Len()
 }

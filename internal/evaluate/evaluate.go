@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/stanfordnlp/dspy/internal/clients"
 	"github.com/stanfordnlp/dspy/internal/primitives"
 )
 
@@ -18,6 +19,9 @@ type Evaluator struct {
 	metric          Metric
 	numThreads      int
 	displayProgress bool
+	autoMetrics     []*AutoMetric
+	useLMJudge      bool
+	lmJudge         *LMJudge
 }
 
 // NewEvaluator creates a new evaluator.
@@ -162,4 +166,29 @@ func (e *Evaluator) EvaluateParallel(ctx context.Context, module primitives.Modu
 	result.AverageScore = result.TotalScore / float64(result.Count)
 
 	return result, nil
+}
+
+// WithAutoMetrics adds auto-generated metrics to the evaluator.
+func (e *Evaluator) WithAutoMetrics(metrics ...*AutoMetric) *Evaluator {
+e.autoMetrics = append(e.autoMetrics, metrics...)
+return e
+}
+
+// WithLMJudge sets the LM-based judge for evaluation.
+func (e *Evaluator) WithLMJudge(judge *LMJudge) *Evaluator {
+e.lmJudge = judge
+e.useLMJudge = true
+return e
+}
+
+// GenerateMetrics automatically generates evaluation metrics based on task description.
+func (e *Evaluator) GenerateMetrics(ctx context.Context, lm clients.BaseLM, taskDescription string, examples []*primitives.Example) error {
+autoEvaluator := NewAutoEvaluator(lm, taskDescription)
+metrics, err := autoEvaluator.GenerateMetrics(ctx, examples)
+if err != nil {
+return fmt.Errorf("failed to generate metrics: %w", err)
+}
+
+e.autoMetrics = append(e.autoMetrics, metrics...)
+return nil
 }

@@ -199,10 +199,10 @@ func (a *AutoEvaluator) buildMetricGenerationPrompt(examples []*primitives.Examp
 // parseGeneratedMetrics parses the LM response to extract metric definitions.
 func (a *AutoEvaluator) parseGeneratedMetrics(text string) ([]*AutoMetric, error) {
 	metrics := []*AutoMetric{}
-	
+
 	// Split by metric separator
 	metricBlocks := strings.Split(text, "---")
-	
+
 	for _, block := range metricBlocks {
 		block = strings.TrimSpace(block)
 		if block == "" {

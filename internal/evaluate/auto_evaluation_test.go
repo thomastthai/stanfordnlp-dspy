@@ -122,11 +122,11 @@ func TestAutoEvaluator_Evaluate(t *testing.T) {
 	}
 
 	evaluator := NewAutoEvaluator(mockLM, "Test task")
-	
+
 	// Add metrics manually instead of generating
 	metric1 := NewAutoMetric("metric1", "First metric", []string{"aspect1"}, mockLM)
 	metric2 := NewAutoMetric("metric2", "Second metric", []string{"aspect2"}, mockLM)
-	
+
 	evaluator.AddMetric(metric1)
 	evaluator.AddMetric(metric2)
 
@@ -279,8 +279,8 @@ func findSubstring(s, substr string) bool {
 }
 
 func abs(x float64) float64 {
-if x < 0 {
-return -x
-}
-return x
+	if x < 0 {
+		return -x
+	}
+	return x
 }

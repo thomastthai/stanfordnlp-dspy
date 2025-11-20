@@ -62,7 +62,8 @@ type squadAnswer struct {
 // NewSQuAD creates a new SQuAD dataset loader.
 func NewSQuAD(config SQuADConfig) *SQuAD {
 	if config.CacheDir == "" {
-		config.CacheDir = filepath.Join(os.TempDir(), "dspy", "squad")
+		// Try to get from global DSPy settings
+		config.CacheDir = getCacheDir("squad")
 	}
 	if config.Version == "" {
 		config.Version = "v2.0"

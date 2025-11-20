@@ -40,7 +40,7 @@ type gsm8kRaw struct {
 // NewGSM8K creates a new GSM8K dataset loader.
 func NewGSM8K(config GSM8KConfig) *GSM8K {
 	if config.CacheDir == "" {
-		config.CacheDir = filepath.Join(os.TempDir(), "dspy", "gsm8k")
+		config.CacheDir = getCacheDir("gsm8k")
 	}
 
 	return &GSM8K{

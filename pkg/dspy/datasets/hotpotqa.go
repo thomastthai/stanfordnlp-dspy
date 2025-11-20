@@ -47,7 +47,7 @@ type hotPotQARaw struct {
 // NewHotPotQA creates a new HotPotQA dataset loader.
 func NewHotPotQA(config HotPotQAConfig) *HotPotQA {
 	if config.CacheDir == "" {
-		config.CacheDir = filepath.Join(os.TempDir(), "dspy", "hotpotqa")
+		config.CacheDir = getCacheDir("hotpotqa")
 	}
 	if config.Setting == "" {
 		config.Setting = "distractor"

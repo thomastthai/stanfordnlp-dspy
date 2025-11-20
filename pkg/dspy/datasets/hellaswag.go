@@ -47,7 +47,7 @@ type hellaSwagRaw struct {
 // NewHellaSwag creates a new HellaSwag dataset loader.
 func NewHellaSwag(config HellaSwagConfig) *HellaSwag {
 	if config.CacheDir == "" {
-		config.CacheDir = filepath.Join(os.TempDir(), "dspy", "hellaswag")
+		config.CacheDir = getCacheDir("hellaswag")
 	}
 
 	return &HellaSwag{

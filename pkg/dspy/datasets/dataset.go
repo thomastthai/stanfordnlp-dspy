@@ -4,6 +4,8 @@ package datasets
 import (
 	"context"
 	"math/rand"
+	"os"
+	"path/filepath"
 )
 
 // Example represents a single example in a dataset.
@@ -153,4 +155,17 @@ func (d *InMemoryDataset) Filter(predicate func(Example) bool) Dataset {
 // Name returns the dataset name.
 func (d *InMemoryDataset) Name() string {
 	return d.name
+}
+
+// getCacheDir returns the cache directory for a specific dataset.
+// It first checks the DSPY_CACHE_DIR environment variable,
+// then falls back to os.TempDir()/dspy/<datasetName>
+func getCacheDir(datasetName string) string {
+	// Import needed in the actual implementation
+	// We'll use a simple approach here
+	baseDir := os.Getenv("DSPY_CACHE_DIR")
+	if baseDir == "" {
+		baseDir = os.TempDir()
+	}
+	return filepath.Join(baseDir, "dspy", datasetName)
 }

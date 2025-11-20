@@ -23,10 +23,15 @@ type Settings struct {
 	MaxTokens int
 
 	// CacheDir is the directory for disk caching
+	// Deprecated: Use CacheConfig.Dir instead
 	CacheDir string
 
 	// EnableCache enables/disables caching
+	// Deprecated: Use CacheConfig.Enabled instead
 	EnableCache bool
+
+	// CacheConfig controls caching behavior
+	CacheConfig *CacheConfig
 
 	// Timeout for LM requests
 	Timeout time.Duration
@@ -45,11 +50,13 @@ type Settings struct {
 
 // NewSettings creates a new Settings instance with default values.
 func NewSettings() *Settings {
+	cacheConfig := DefaultCacheConfig()
 	return &Settings{
 		Temperature:  0.0,
 		MaxTokens:    1000,
-		CacheDir:     ".dspy_cache",
-		EnableCache:  true,
+		CacheDir:     cacheConfig.Dir,     // Backward compatibility
+		EnableCache:  cacheConfig.Enabled, // Backward compatibility
+		CacheConfig:  cacheConfig,
 		Timeout:      30 * time.Second,
 		MaxRetries:   3,
 		Trace:        false,
@@ -67,6 +74,17 @@ func (s *Settings) Copy() *Settings {
 		exp[k] = v
 	}
 
+	// Deep copy CacheConfig
+	var cacheConfig *CacheConfig
+	if s.CacheConfig != nil {
+		cacheConfig = &CacheConfig{
+			Dir:       s.CacheConfig.Dir,
+			MaxSizeMB: s.CacheConfig.MaxSizeMB,
+			TTL:       s.CacheConfig.TTL,
+			Enabled:   s.CacheConfig.Enabled,
+		}
+	}
+
 	return &Settings{
 		LM:           s.LM,
 		RM:           s.RM,
@@ -75,6 +93,7 @@ func (s *Settings) Copy() *Settings {
 		MaxTokens:    s.MaxTokens,
 		CacheDir:     s.CacheDir,
 		EnableCache:  s.EnableCache,
+		CacheConfig:  cacheConfig,
 		Timeout:      s.Timeout,
 		MaxRetries:   s.MaxRetries,
 		Trace:        s.Trace,
@@ -131,11 +150,16 @@ func WithMaxTokens(max int) SettingsOption {
 }
 
 // WithCacheDir sets the cache directory.
+// Deprecated: This function is maintained for backward compatibility.
+// The preferred way is to use the WithCacheDir function from cache.go.
 func WithCacheDir(dir string) SettingsOption {
 	return func(s *Settings) {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.CacheDir = dir
+		if s.CacheConfig != nil {
+			s.CacheConfig.Dir = dir
+		}
 	}
 }
 
@@ -145,6 +169,9 @@ func WithCache(enabled bool) SettingsOption {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.EnableCache = enabled
+		if s.CacheConfig != nil {
+			s.CacheConfig.Enabled = enabled
+		}
 	}
 }
 

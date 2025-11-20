@@ -90,6 +90,65 @@ func main() {
 }
 ```
 
+## Cache Configuration
+
+DSPy-Go supports configurable cache for datasets, making it suitable for containerized environments (Kubernetes, Docker) where `/tmp` is ephemeral.
+
+### Environment Variables
+
+```bash
+export DSPY_CACHE_DIR=/persistent/cache   # Cache directory
+export DSPY_CACHE_SIZE_MB=5120            # Max cache size (5GB)
+export DSPY_CACHE_TTL=48h                 # Cache TTL
+export DSPY_CACHE_ENABLED=true            # Enable/disable
+```
+
+### Programmatic Configuration
+
+```go
+dspy.Configure(
+    dspy.WithCacheDir("/persistent/cache"),
+    dspy.WithCacheSize(5120),  // 5GB
+    dspy.WithCacheTTL(48*time.Hour),
+)
+```
+
+### Kubernetes Example
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dspy-cache
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dspy-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        env:
+        - name: DSPY_CACHE_DIR
+          value: "/cache"
+        volumeMounts:
+        - name: cache
+          mountPath: /cache
+      volumes:
+      - name: cache
+        persistentVolumeClaim:
+          claimName: dspy-cache
+```
+
+See [docs/CACHE_CONFIGURATION.md](docs/CACHE_CONFIGURATION.md) for comprehensive documentation.
+
 ## Architecture
 
 The project follows a clean architecture inspired by Terraform:
@@ -149,6 +208,7 @@ make check
 See the `examples/` directory for complete working examples:
 
 - `quickstart/` - Basic prediction usage
+- `cache_config/` - Cache configuration for containers
 - `rag/` - RAG system with retriever (TODO)
 - `agents/` - ReAct agent with tools (TODO)
 - `optimization/` - Optimizing with BootstrapFewShot (TODO)

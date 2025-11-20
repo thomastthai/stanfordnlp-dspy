@@ -93,6 +93,21 @@ func TestOptimizers_Instantiation(t *testing.T) {
 			create:   func() Teleprompt { return NewOptunaOptimizer(nil) },
 			wantName: "OptunaOptimizer",
 		},
+		{
+			name:     "BootstrapTrace",
+			create:   func() Teleprompt { return NewBootstrapTrace(4) },
+			wantName: "BootstrapTrace",
+		},
+		{
+			name:     "GRPO",
+			create:   func() Teleprompt { return NewGRPO(nil) },
+			wantName: "GRPO",
+		},
+		{
+			name:     "SignatureOptimizer",
+			create:   func() Teleprompt { return NewSignatureOptimizer(nil) },
+			wantName: "SignatureOptimizer",
+		},
 	}
 
 	for _, tt := range tests {
@@ -125,6 +140,9 @@ func TestOptimizers_InterfaceCompliance(t *testing.T) {
 		NewSIMBA(nil),
 		NewBetterTogether(nil),
 		NewOptunaOptimizer(nil),
+		NewBootstrapTrace(4),
+		NewGRPO(nil),
+		NewSignatureOptimizer(nil),
 	}
 
 	for _, optimizer := range optimizers {
@@ -295,5 +313,89 @@ func TestAvatarOptimizer_Configuration(t *testing.T) {
 
 	if !optimizer.Verbose {
 		t.Error("expected Verbose=true")
+	}
+}
+
+// Test BootstrapTrace configuration
+func TestBootstrapTrace_Configuration(t *testing.T) {
+	optimizer := NewBootstrapTrace(10).
+		WithMaxLabeledDemos(20).
+		WithTraceMode("minimal").
+		WithNumThreads(4)
+
+	if optimizer.MaxBootstrappedDemos != 10 {
+		t.Errorf("expected MaxBootstrappedDemos=10, got %d", optimizer.MaxBootstrappedDemos)
+	}
+
+	if optimizer.MaxLabeledDemos != 20 {
+		t.Errorf("expected MaxLabeledDemos=20, got %d", optimizer.MaxLabeledDemos)
+	}
+
+	if optimizer.TraceMode != "minimal" {
+		t.Errorf("expected TraceMode='minimal', got '%s'", optimizer.TraceMode)
+	}
+
+	if optimizer.NumThreads != 4 {
+		t.Errorf("expected NumThreads=4, got %d", optimizer.NumThreads)
+	}
+}
+
+// Test GRPO configuration
+func TestGRPO_Configuration(t *testing.T) {
+	optimizer := NewGRPO(nil).
+		WithNumEpochs(5).
+		WithBatchSize(64).
+		WithLearningRate(1e-3).
+		WithGamma(0.95).
+		WithClipRange(0.3)
+
+	if optimizer.NumEpochs != 5 {
+		t.Errorf("expected NumEpochs=5, got %d", optimizer.NumEpochs)
+	}
+
+	if optimizer.BatchSize != 64 {
+		t.Errorf("expected BatchSize=64, got %d", optimizer.BatchSize)
+	}
+
+	if optimizer.LearningRate != 1e-3 {
+		t.Errorf("expected LearningRate=1e-3, got %f", optimizer.LearningRate)
+	}
+
+	if optimizer.Gamma != 0.95 {
+		t.Errorf("expected Gamma=0.95, got %f", optimizer.Gamma)
+	}
+
+	if optimizer.ClipRange != 0.3 {
+		t.Errorf("expected ClipRange=0.3, got %f", optimizer.ClipRange)
+	}
+}
+
+// Test SignatureOptimizer configuration
+func TestSignatureOptimizer_Configuration(t *testing.T) {
+	optimizer := NewSignatureOptimizer(func() {}).
+		WithOptimizeInstructions(false).
+		WithOptimizeDescriptions(true).
+		WithNumCandidates(15).
+		WithBreadth(12).
+		WithDepth(4)
+
+	if optimizer.OptimizeInstructions {
+		t.Error("expected OptimizeInstructions=false")
+	}
+
+	if !optimizer.OptimizeDescriptions {
+		t.Error("expected OptimizeDescriptions=true")
+	}
+
+	if optimizer.NumCandidates != 15 {
+		t.Errorf("expected NumCandidates=15, got %d", optimizer.NumCandidates)
+	}
+
+	if optimizer.Breadth != 12 {
+		t.Errorf("expected Breadth=12, got %d", optimizer.Breadth)
+	}
+
+	if optimizer.Depth != 4 {
+		t.Errorf("expected Depth=4, got %d", optimizer.Depth)
 	}
 }

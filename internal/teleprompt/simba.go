@@ -3,7 +3,6 @@ package teleprompt
 import (
 	"context"
 	"fmt"
-	"math"
 
 	"github.com/stanfordnlp/dspy/internal/primitives"
 )
@@ -161,49 +160,24 @@ func (s *SIMBA) selectArm(counts []int, means []float64, iteration int) int {
 
 // selectArmUCB selects arm using Upper Confidence Bound.
 func (s *SIMBA) selectArmUCB(counts []int, means []float64, iteration int) int {
-	bestArm := 0
-	bestValue := -math.MaxFloat64
-
 	totalCounts := 0
 	for _, count := range counts {
 		totalCounts += count
 	}
-
-	for i := range counts {
-		if counts[i] == 0 {
-			return i // Always try unexplored arms
-		}
-
-		// UCB1 formula
-		exploration := s.ExplorationParameter * math.Sqrt(math.Log(float64(totalCounts))/float64(counts[i]))
-		value := means[i] + exploration
-
-		if value > bestValue {
-			bestValue = value
-			bestArm = i
-		}
-	}
-
-	return bestArm
+	return UCBSelection(counts, means, totalCounts, s.ExplorationParameter)
 }
 
 // selectArmThompson selects arm using Thompson Sampling.
 func (s *SIMBA) selectArmThompson(counts []int, means []float64) int {
-	// Simplified Thompson sampling
-	// In full implementation, would sample from posterior distributions
-	bestArm := 0
-	bestSample := -math.MaxFloat64
-
-	for i := range means {
-		// Sample from posterior (simplified as normal around mean)
-		sample := means[i] // Placeholder
-		if sample > bestSample {
-			bestSample = sample
-			bestArm = i
-		}
+	// Convert counts and means to successes/failures for Thompson Sampling
+	successes := make([]int, len(counts))
+	failures := make([]int, len(counts))
+	for i := range counts {
+		// Approximate successes based on mean and count
+		successes[i] = int(means[i] * float64(counts[i]))
+		failures[i] = counts[i] - successes[i]
 	}
-
-	return bestArm
+	return ThompsonSampling(successes, failures)
 }
 
 // selectArmEpsilonGreedy selects arm using epsilon-greedy strategy.
@@ -214,23 +188,7 @@ func (s *SIMBA) selectArmEpsilonGreedy(means []float64, iteration int) int {
 		epsilon = s.ExplorationParameter / (1.0 + float64(iteration)*0.1)
 	}
 
-	// Explore with probability epsilon
-	if math.Mod(float64(iteration), 1.0/epsilon) < 1.0 {
-		// Random exploration (simplified)
-		return iteration % len(means)
-	}
-
-	// Exploit: choose best arm
-	bestArm := 0
-	bestMean := means[0]
-	for i, mean := range means {
-		if mean > bestMean {
-			bestMean = mean
-			bestArm = i
-		}
-	}
-
-	return bestArm
+	return EpsilonGreedy(means, epsilon)
 }
 
 // evaluateCandidate evaluates a candidate on the trainset.

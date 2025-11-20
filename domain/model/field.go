@@ -19,6 +19,8 @@ const (
 )
 
 // String returns the string representation of the field.
+// For string-typed fields, returns the actual string value.
+// For non-string fields, returns an empty string.
 func (f *Field) String() string {
 	if s, ok := f.Value.(string); ok {
 		return s

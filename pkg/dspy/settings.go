@@ -54,7 +54,7 @@ func NewSettings() *Settings {
 	return &Settings{
 		Temperature:  0.0,
 		MaxTokens:    1000,
-		CacheDir:     cacheConfig.Dir, // Backward compatibility
+		CacheDir:     cacheConfig.Dir,     // Backward compatibility
 		EnableCache:  cacheConfig.Enabled, // Backward compatibility
 		CacheConfig:  cacheConfig,
 		Timeout:      30 * time.Second,

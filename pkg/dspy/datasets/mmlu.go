@@ -59,7 +59,7 @@ var MMLUSubjects = []string{
 // NewMMLU creates a new MMLU dataset loader.
 func NewMMLU(config MMLUConfig) *MMLU {
 	if config.CacheDir == "" {
-		config.CacheDir = filepath.Join(os.TempDir(), "dspy", "mmlu")
+		config.CacheDir = getCacheDir("mmlu")
 	}
 
 	subjects := MMLUSubjects

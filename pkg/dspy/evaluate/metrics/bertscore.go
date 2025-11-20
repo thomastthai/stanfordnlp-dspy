@@ -58,25 +58,25 @@ func (m *BERTScoreMetric) ComputeScores(ctx context.Context, prediction string, 
 	// Tokenize
 	predTokens := strings.Fields(strings.ToLower(prediction))
 	refTokens := strings.Fields(strings.ToLower(reference))
-	
+
 	if len(predTokens) == 0 || len(refTokens) == 0 {
 		return BERTScoreResult{}, nil
 	}
-	
+
 	// Get embeddings
 	predEmbs, err := m.embedder.Embed(ctx, predTokens)
 	if err != nil {
 		return BERTScoreResult{}, err
 	}
-	
+
 	refEmbs, err := m.embedder.Embed(ctx, refTokens)
 	if err != nil {
 		return BERTScoreResult{}, err
 	}
-	
+
 	// Compute similarity matrix
 	simMatrix := m.computeSimilarityMatrix(predEmbs, refEmbs)
-	
+
 	// Precision: for each prediction token, find max similarity with reference tokens
 	precisionSum := 0.0
 	for i := 0; i < len(predTokens); i++ {
@@ -89,7 +89,7 @@ func (m *BERTScoreMetric) ComputeScores(ctx context.Context, prediction string, 
 		precisionSum += maxSim
 	}
 	precision := precisionSum / float64(len(predTokens))
-	
+
 	// Recall: for each reference token, find max similarity with prediction tokens
 	recallSum := 0.0
 	for j := 0; j < len(refTokens); j++ {
@@ -102,13 +102,13 @@ func (m *BERTScoreMetric) ComputeScores(ctx context.Context, prediction string, 
 		recallSum += maxSim
 	}
 	recall := recallSum / float64(len(refTokens))
-	
+
 	// F1 score
 	f1 := 0.0
 	if precision+recall > 0 {
 		f1 = 2 * precision * recall / (precision + recall)
 	}
-	
+
 	return BERTScoreResult{
 		Precision: precision,
 		Recall:    recall,
@@ -133,21 +133,21 @@ func (m *BERTScoreMetric) cosineSimilarity(v1, v2 []float32) float64 {
 	if len(v1) != len(v2) {
 		return 0.0
 	}
-	
+
 	dotProduct := 0.0
 	norm1 := 0.0
 	norm2 := 0.0
-	
+
 	for i := 0; i < len(v1); i++ {
 		dotProduct += float64(v1[i]) * float64(v2[i])
 		norm1 += float64(v1[i]) * float64(v1[i])
 		norm2 += float64(v2[i]) * float64(v2[i])
 	}
-	
+
 	if norm1 == 0 || norm2 == 0 {
 		return 0.0
 	}
-	
+
 	return dotProduct / (math.Sqrt(norm1) * math.Sqrt(norm2))
 }
 
@@ -156,7 +156,7 @@ func (m *BERTScoreMetric) ComputeBatchScores(ctx context.Context, predictions, r
 	if len(predictions) != len(references) {
 		return nil, nil
 	}
-	
+
 	results := make([]BERTScoreResult, len(predictions))
 	for i := range predictions {
 		score, err := m.ComputeScores(ctx, predictions[i], references[i])
@@ -165,6 +165,6 @@ func (m *BERTScoreMetric) ComputeBatchScores(ctx context.Context, predictions, r
 		}
 		results[i] = score
 	}
-	
+
 	return results, nil
 }

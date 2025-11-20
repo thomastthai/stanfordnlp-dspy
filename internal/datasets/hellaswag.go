@@ -16,11 +16,11 @@ type HellaSwag struct {
 func NewHellaSwag(ctx context.Context, opts DatasetOptions) (*HellaSwag, error) {
 	base := NewBaseDataset("hellaswag", opts)
 	dataset := &HellaSwag{BaseDataset: base}
-	
+
 	if err := dataset.load(ctx); err != nil {
 		return nil, err
 	}
-	
+
 	return dataset, nil
 }
 
@@ -31,10 +31,10 @@ func (h *HellaSwag) load(ctx context.Context) error {
 
 // HellaSwagExample represents a single HellaSwag example.
 type HellaSwagExample struct {
-	Context     string   `json:"ctx"`
-	Endings     []string `json:"endings"`
-	Label       int      `json:"label"` // Index of correct ending
-	ActivityLabel string `json:"activity_label"`
+	Context       string   `json:"ctx"`
+	Endings       []string `json:"endings"`
+	Label         int      `json:"label"` // Index of correct ending
+	ActivityLabel string   `json:"activity_label"`
 }
 
 // ConvertHellaSwagExample converts a raw HellaSwag example to a DSPy Example.
@@ -45,7 +45,7 @@ func ConvertHellaSwagExample(raw HellaSwagExample) *primitives.Example {
 		"label":          raw.Label,
 		"activity_label": raw.ActivityLabel,
 	}
-	
+
 	ex := primitives.NewExample(nil, data)
 	return ex.WithInputs("context", "endings")
 }
@@ -56,21 +56,21 @@ func HellaSwagMetric(gold, pred *primitives.Example) bool {
 	if !ok {
 		return false
 	}
-	
+
 	predLabel, ok := pred.Get("label")
 	if !ok {
 		return false
 	}
-	
+
 	goldInt, ok := goldLabel.(int)
 	if !ok {
 		return false
 	}
-	
+
 	predInt, ok := predLabel.(int)
 	if !ok {
 		return false
 	}
-	
+
 	return goldInt == predInt
 }

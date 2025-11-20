@@ -13,7 +13,7 @@ import (
 
 // EmbeddingRequest represents an OpenAI embeddings API request.
 type EmbeddingRequest struct {
-	Input          interface{} `json:"input"`           // string or []string
+	Input          interface{} `json:"input"` // string or []string
 	Model          string      `json:"model"`
 	EncodingFormat string      `json:"encoding_format,omitempty"` // "float" or "base64"
 	Dimensions     *int        `json:"dimensions,omitempty"`      // For text-embedding-3 models
@@ -22,10 +22,10 @@ type EmbeddingRequest struct {
 
 // EmbeddingResponse represents an OpenAI embeddings API response.
 type EmbeddingResponse struct {
-	Object string              `json:"object"`
-	Data   []EmbeddingData     `json:"data"`
-	Model  string              `json:"model"`
-	Usage  EmbeddingUsage      `json:"usage"`
+	Object string          `json:"object"`
+	Data   []EmbeddingData `json:"data"`
+	Model  string          `json:"model"`
+	Usage  EmbeddingUsage  `json:"usage"`
 }
 
 // EmbeddingData represents a single embedding.
@@ -214,36 +214,36 @@ func (c *Client) CreateEmbeddingsWithDimensions(ctx context.Context, texts []str
 
 // EmbeddingModels contains information about available embedding models.
 var EmbeddingModels = map[string]struct {
-	Name           string
-	Dimensions     int
-	MaxTokens      int
+	Name            string
+	Dimensions      int
+	MaxTokens       int
 	CostPer1MTokens float64
 }{
 	"text-embedding-3-small": {
-		Name:           "text-embedding-3-small",
-		Dimensions:     1536,
-		MaxTokens:      8191,
+		Name:            "text-embedding-3-small",
+		Dimensions:      1536,
+		MaxTokens:       8191,
 		CostPer1MTokens: 0.02,
 	},
 	"text-embedding-3-large": {
-		Name:           "text-embedding-3-large",
-		Dimensions:     3072,
-		MaxTokens:      8191,
+		Name:            "text-embedding-3-large",
+		Dimensions:      3072,
+		MaxTokens:       8191,
 		CostPer1MTokens: 0.13,
 	},
 	"text-embedding-ada-002": {
-		Name:           "text-embedding-ada-002",
-		Dimensions:     1536,
-		MaxTokens:      8191,
+		Name:            "text-embedding-ada-002",
+		Dimensions:      1536,
+		MaxTokens:       8191,
 		CostPer1MTokens: 0.10,
 	},
 }
 
 // GetEmbeddingModelInfo returns information about an embedding model.
 func GetEmbeddingModelInfo(model string) (struct {
-	Name           string
-	Dimensions     int
-	MaxTokens      int
+	Name            string
+	Dimensions      int
+	MaxTokens       int
 	CostPer1MTokens float64
 }, bool) {
 	info, ok := EmbeddingModels[model]

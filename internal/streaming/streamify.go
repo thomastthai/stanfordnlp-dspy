@@ -13,23 +13,23 @@ type StreamifyFunc func(ctx context.Context, input interface{}) *Stream
 func Streamify(fn func(interface{}) ([]interface{}, error)) StreamifyFunc {
 	return func(ctx context.Context, input interface{}) *Stream {
 		stream := NewStream(ctx, 10)
-		
+
 		go func() {
 			defer stream.Close()
-			
+
 			results, err := fn(input)
 			if err != nil {
 				stream.SendError(err)
 				return
 			}
-			
+
 			for _, result := range results {
 				if err := stream.Send(result); err != nil {
 					return
 				}
 			}
 		}()
-		
+
 		return stream
 	}
 }
@@ -38,30 +38,30 @@ func Streamify(fn func(interface{}) ([]interface{}, error)) StreamifyFunc {
 func StreamifyChunked(fn func(interface{}) ([]interface{}, error), chunkSize int) StreamifyFunc {
 	return func(ctx context.Context, input interface{}) *Stream {
 		stream := NewStream(ctx, 10)
-		
+
 		go func() {
 			defer stream.Close()
-			
+
 			results, err := fn(input)
 			if err != nil {
 				stream.SendError(err)
 				return
 			}
-			
+
 			// Send in chunks
 			for i := 0; i < len(results); i += chunkSize {
 				end := i + chunkSize
 				if end > len(results) {
 					end = len(results)
 				}
-				
+
 				chunk := results[i:end]
 				if err := stream.Send(chunk); err != nil {
 					return
 				}
 			}
 		}()
-		
+
 		return stream
 	}
 }
@@ -75,35 +75,35 @@ type Module interface {
 func StreamifyModuleFunc(module Module) func(context.Context, map[string]interface{}) *Stream {
 	return func(ctx context.Context, inputs map[string]interface{}) *Stream {
 		stream := NewStream(ctx, 10)
-		
+
 		go func() {
 			defer stream.Close()
-			
+
 			// Send start event
 			stream.Send(map[string]interface{}{
 				"event": "start",
 				"input": inputs,
 			})
-			
+
 			// Call module
 			outputs, err := module.Forward(ctx, inputs)
 			if err != nil {
 				stream.SendError(err)
 				return
 			}
-			
+
 			// Send output event
 			stream.Send(map[string]interface{}{
 				"event":  "output",
 				"result": outputs,
 			})
-			
+
 			// Send end event
 			stream.Send(map[string]interface{}{
 				"event": "end",
 			})
 		}()
-		
+
 		return stream
 	}
 }
@@ -118,24 +118,24 @@ type StreamBuffer struct {
 // NewStreamBuffer creates a new stream buffer.
 func NewStreamBuffer(ctx context.Context, input *Stream, bufferSize int) *StreamBuffer {
 	output := NewStream(ctx, bufferSize)
-	
+
 	buffer := &StreamBuffer{
 		input:      input,
 		output:     output,
 		bufferSize: bufferSize,
 	}
-	
+
 	go buffer.process()
-	
+
 	return buffer
 }
 
 // process processes items from input to output with buffering.
 func (sb *StreamBuffer) process() {
 	defer sb.output.Close()
-	
+
 	buffer := make([]interface{}, 0, sb.bufferSize)
-	
+
 	for {
 		item, err := sb.input.Next()
 		if err != nil {
@@ -147,9 +147,9 @@ func (sb *StreamBuffer) process() {
 			}
 			break
 		}
-		
+
 		buffer = append(buffer, item)
-		
+
 		if len(buffer) >= sb.bufferSize {
 			sb.flush(buffer)
 			buffer = make([]interface{}, 0, sb.bufferSize)
@@ -191,7 +191,7 @@ func (sl *StreamingListener) Listen(stream *Stream) {
 				}
 				break
 			}
-			
+
 			if sl.OnItem != nil {
 				sl.OnItem(item)
 			}

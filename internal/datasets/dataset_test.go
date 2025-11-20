@@ -4,39 +4,59 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stanfordnlp/dspy/internal/primitives"
 )
 
-func TestInMemoryDataset(t *testing.T) {
-	examples := []map[string]interface{}{
-		{"question": "What is 2+2?", "answer": "4"},
-		{"question": "What is 3+3?", "answer": "6"},
+func TestBaseDataset(t *testing.T) {
+	opts := DefaultDatasetOptions()
+	dataset := NewBaseDataset("test", opts)
+
+	// Create some test examples
+	examples := []*primitives.Example{
+		primitives.NewExample(map[string]interface{}{"question": "What is 2+2?"}, map[string]interface{}{"answer": "4"}),
+		primitives.NewExample(map[string]interface{}{"question": "What is 3+3?"}, map[string]interface{}{"answer": "6"}),
 	}
 
-	dataset := NewInMemoryDataset(examples)
+	dataset.SetTrain(examples)
+
+	if dataset.Name() != "test" {
+		t.Errorf("Expected name 'test', got '%s'", dataset.Name())
+	}
+
+	if len(dataset.Train()) != 2 {
+		t.Errorf("Expected 2 training examples, got %d", len(dataset.Train()))
+	}
 
 	if dataset.Len() != 2 {
-		t.Errorf("Expected length 2, got %d", dataset.Len())
+		t.Errorf("Expected total length 2, got %d", dataset.Len())
+	}
+}
+
+func TestDatasetSplits(t *testing.T) {
+	examples := []*primitives.Example{
+		primitives.NewExample(nil, map[string]interface{}{"id": 1}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 2}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 3}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 4}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 5}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 6}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 7}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 8}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 9}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 10}),
 	}
 
-	ex, err := dataset.Get(0)
-	if err != nil {
-		t.Fatalf("Get(0) error = %v", err)
-	}
-	if ex["question"] != "What is 2+2?" {
-		t.Errorf("Expected question 'What is 2+2?', got '%v'", ex["question"])
-	}
+	train, dev, test := SplitData(examples, 0.6, 0.2)
 
-	_, err = dataset.Get(5)
-	if err == nil {
-		t.Error("Expected error for out of range index, got nil")
+	if len(train) != 6 {
+		t.Errorf("Expected 6 training examples, got %d", len(train))
 	}
-
-	all, err := dataset.GetAll()
-	if err != nil {
-		t.Fatalf("GetAll() error = %v", err)
+	if len(dev) != 2 {
+		t.Errorf("Expected 2 dev examples, got %d", len(dev))
 	}
-	if len(all) != 2 {
-		t.Errorf("Expected 2 examples, got %d", len(all))
+	if len(test) != 2 {
+		t.Errorf("Expected 2 test examples, got %d", len(test))
 	}
 }
 
@@ -54,67 +74,22 @@ func TestLoadFromJSON(t *testing.T) {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
-	// Test loading all fields
-	dataset, err := LoadFromJSON(jsonPath, nil)
+	examples, err := LoadFromJSON(jsonPath)
 	if err != nil {
 		t.Fatalf("LoadFromJSON() error = %v", err)
 	}
 
-	if dataset.Len() != 2 {
-		t.Errorf("Expected 2 examples, got %d", dataset.Len())
+	if len(examples) != 2 {
+		t.Errorf("Expected 2 examples, got %d", len(examples))
 	}
 
-	// Test loading specific fields
-	dataset, err = LoadFromJSON(jsonPath, []string{"question", "answer"})
-	if err != nil {
-		t.Fatalf("LoadFromJSON() with fields error = %v", err)
+	// Check first example
+	ex := examples[0]
+	if val, ok := ex.Get("question"); !ok || val != "Q1" {
+		t.Errorf("Expected question 'Q1', got '%v'", val)
 	}
-
-	ex, _ := dataset.Get(0)
-	if _, hasExtra := ex["extra"]; hasExtra {
-		t.Error("Expected 'extra' field to be filtered out")
-	}
-	if ex["question"] != "Q1" {
-		t.Errorf("Expected question 'Q1', got '%v'", ex["question"])
-	}
-}
-
-func TestLoadFromCSV(t *testing.T) {
-	tmpDir := t.TempDir()
-	csvPath := filepath.Join(tmpDir, "test.csv")
-
-	csvData := `question,answer,extra
-Q1,A1,E1
-Q2,A2,E2`
-
-	if err := os.WriteFile(csvPath, []byte(csvData), 0644); err != nil {
-		t.Fatalf("Failed to write test file: %v", err)
-	}
-
-	// Test loading all fields
-	dataset, err := LoadFromCSV(csvPath, nil)
-	if err != nil {
-		t.Fatalf("LoadFromCSV() error = %v", err)
-	}
-
-	if dataset.Len() != 2 {
-		t.Errorf("Expected 2 examples, got %d", dataset.Len())
-	}
-
-	ex, _ := dataset.Get(0)
-	if ex["question"] != "Q1" {
-		t.Errorf("Expected question 'Q1', got '%v'", ex["question"])
-	}
-
-	// Test loading specific fields
-	dataset, err = LoadFromCSV(csvPath, []string{"question"})
-	if err != nil {
-		t.Fatalf("LoadFromCSV() with fields error = %v", err)
-	}
-
-	ex, _ = dataset.Get(0)
-	if _, hasAnswer := ex["answer"]; hasAnswer {
-		t.Error("Expected 'answer' field to be filtered out")
+	if val, ok := ex.Get("answer"); !ok || val != "A1" {
+		t.Errorf("Expected answer 'A1', got '%v'", val)
 	}
 }
 
@@ -129,17 +104,71 @@ func TestLoadFromJSONL(t *testing.T) {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
-	dataset, err := LoadFromJSONL(jsonlPath, nil)
+	examples, err := LoadFromJSONL(jsonlPath)
 	if err != nil {
 		t.Fatalf("LoadFromJSONL() error = %v", err)
 	}
 
-	if dataset.Len() != 2 {
-		t.Errorf("Expected 2 examples, got %d", dataset.Len())
+	if len(examples) != 2 {
+		t.Errorf("Expected 2 examples, got %d", len(examples))
 	}
 
-	ex, _ := dataset.Get(1)
-	if ex["question"] != "Q2" {
-		t.Errorf("Expected question 'Q2', got '%v'", ex["question"])
+	ex := examples[1]
+	if val, ok := ex.Get("question"); !ok || val != "Q2" {
+		t.Errorf("Expected question 'Q2', got '%v'", val)
+	}
+}
+
+func TestDataLoader(t *testing.T) {
+	examples := []*primitives.Example{
+		primitives.NewExample(nil, map[string]interface{}{"id": 1}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 2}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 3}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 4}),
+		primitives.NewExample(nil, map[string]interface{}{"id": 5}),
+	}
+
+	opts := DataLoaderOptions{
+		BatchSize:  2,
+		Shuffle:    false,
+		Seed:       0,
+		NumWorkers: 1,
+		DropLast:   false,
+	}
+
+	dl := NewDataLoader(examples, opts)
+
+	if dl.Len() != 5 {
+		t.Errorf("Expected length 5, got %d", dl.Len())
+	}
+
+	if dl.NumBatches() != 3 {
+		t.Errorf("Expected 3 batches, got %d", dl.NumBatches())
+	}
+
+	// Test iteration
+	batchCount := 0
+	totalExamples := 0
+	for {
+		batch := dl.Next()
+		if batch == nil {
+			break
+		}
+		batchCount++
+		totalExamples += len(batch)
+	}
+
+	if batchCount != 3 {
+		t.Errorf("Expected 3 batches, got %d", batchCount)
+	}
+	if totalExamples != 5 {
+		t.Errorf("Expected 5 total examples, got %d", totalExamples)
+	}
+
+	// Test reset
+	dl.Reset()
+	batch := dl.Next()
+	if batch == nil {
+		t.Error("Expected batch after reset, got nil")
 	}
 }

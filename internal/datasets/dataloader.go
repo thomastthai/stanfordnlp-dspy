@@ -54,11 +54,11 @@ func NewDataLoader(examples []*primitives.Example, opts DataLoaderOptions) *Data
 		examples:     examples,
 		currentIndex: 0,
 	}
-	
+
 	if dl.shuffle {
 		dl.shuffleExamples()
 	}
-	
+
 	return dl
 }
 
@@ -78,20 +78,20 @@ func (dl *DataLoader) Next() []*primitives.Example {
 	if dl.currentIndex >= len(dl.examples) {
 		return nil
 	}
-	
+
 	endIndex := dl.currentIndex + dl.batchSize
 	if endIndex > len(dl.examples) {
 		endIndex = len(dl.examples)
-		
+
 		// Drop last incomplete batch if configured
 		if dl.dropLast && endIndex-dl.currentIndex < dl.batchSize {
 			return nil
 		}
 	}
-	
+
 	batch := dl.examples[dl.currentIndex:endIndex]
 	dl.currentIndex = endIndex
-	
+
 	return batch
 }
 
@@ -118,10 +118,10 @@ func (dl *DataLoader) NumBatches() int {
 
 // StreamingDataLoader provides streaming dataset loading for large datasets.
 type StreamingDataLoader struct {
-	reader     io.ReadCloser
-	batchSize  int
-	decoder    *json.Decoder
-	closed     bool
+	reader    io.ReadCloser
+	batchSize int
+	decoder   *json.Decoder
+	closed    bool
 }
 
 // NewStreamingDataLoader creates a streaming data loader from a reader.
@@ -139,9 +139,9 @@ func (sdl *StreamingDataLoader) NextBatch() ([]*primitives.Example, error) {
 	if sdl.closed {
 		return nil, io.EOF
 	}
-	
+
 	batch := make([]*primitives.Example, 0, sdl.batchSize)
-	
+
 	for i := 0; i < sdl.batchSize; i++ {
 		var data map[string]interface{}
 		if err := sdl.decoder.Decode(&data); err != nil {
@@ -154,10 +154,10 @@ func (sdl *StreamingDataLoader) NextBatch() ([]*primitives.Example, error) {
 			}
 			return nil, fmt.Errorf("failed to decode example: %w", err)
 		}
-		
+
 		batch = append(batch, primitives.NewExample(nil, data))
 	}
-	
+
 	return batch, nil
 }
 
@@ -177,10 +177,10 @@ func LoadFromJSONL(path string) ([]*primitives.Example, error) {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
-	
+
 	var examples []*primitives.Example
 	scanner := bufio.NewScanner(file)
-	
+
 	for scanner.Scan() {
 		var data map[string]interface{}
 		if err := json.Unmarshal(scanner.Bytes(), &data); err != nil {
@@ -188,11 +188,11 @@ func LoadFromJSONL(path string) ([]*primitives.Example, error) {
 		}
 		examples = append(examples, primitives.NewExample(nil, data))
 	}
-	
+
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("error reading file: %w", err)
 	}
-	
+
 	return examples, nil
 }
 
@@ -203,18 +203,18 @@ func LoadFromJSON(path string) ([]*primitives.Example, error) {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
-	
+
 	var data []map[string]interface{}
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&data); err != nil {
 		return nil, fmt.Errorf("failed to decode JSON: %w", err)
 	}
-	
+
 	examples := make([]*primitives.Example, 0, len(data))
 	for _, item := range data {
 		examples = append(examples, primitives.NewExample(nil, item))
 	}
-	
+
 	return examples, nil
 }
 
@@ -225,14 +225,14 @@ func SaveToJSONL(path string, examples []*primitives.Example) error {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
 	defer file.Close()
-	
+
 	encoder := json.NewEncoder(file)
 	for _, ex := range examples {
 		if err := encoder.Encode(ex.ToMap()); err != nil {
 			return fmt.Errorf("failed to encode example: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 

@@ -8,13 +8,13 @@ import (
 
 // LMCallbackData contains data passed to LM callbacks.
 type LMCallbackData struct {
-	Model      string
-	Prompt     string
-	Response   string
-	Tokens     int
-	Duration   time.Duration
-	Error      error
-	Metadata   map[string]interface{}
+	Model    string
+	Prompt   string
+	Response string
+	Tokens   int
+	Duration time.Duration
+	Error    error
+	Metadata map[string]interface{}
 }
 
 // LMCallback is called before or after an LM call.
@@ -34,8 +34,8 @@ type ModuleCallback func(ctx context.Context, data ModuleCallbackData)
 
 // CallbackManager manages callbacks for DSPy operations.
 type CallbackManager struct {
-	preLMCallbacks    []LMCallback
-	postLMCallbacks   []LMCallback
+	preLMCallbacks      []LMCallback
+	postLMCallbacks     []LMCallback
 	preModuleCallbacks  []ModuleCallback
 	postModuleCallbacks []ModuleCallback
 }

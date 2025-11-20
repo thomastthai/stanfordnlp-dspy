@@ -88,10 +88,10 @@ func TestRateLimiterNoLimit(t *testing.T) {
 
 func TestRateLimiterStop(t *testing.T) {
 	rl := NewRateLimiter(60)
-	
+
 	// Stop should not panic
 	rl.Stop()
-	
+
 	// Calling stop again should not panic
 	rl.Stop()
 }

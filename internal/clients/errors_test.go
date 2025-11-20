@@ -134,7 +134,7 @@ func TestRetryConfigGetWaitDuration(t *testing.T) {
 		{2, 4 * time.Second},
 		{3, 8 * time.Second},
 		{4, 16 * time.Second},
-		{5, 30 * time.Second}, // Capped at MaxWait
+		{5, 30 * time.Second},  // Capped at MaxWait
 		{10, 30 * time.Second}, // Still capped
 	}
 

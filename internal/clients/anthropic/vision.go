@@ -17,10 +17,10 @@ type ContentBlock struct {
 
 // ImageSource represents an image source.
 type ImageSource struct {
-	Type      string `json:"type"`       // "base64" or "url"
-	MediaType string `json:"media_type"` // "image/jpeg", "image/png", "image/gif", "image/webp"
-	Data      string `json:"data,omitempty"`      // base64 encoded data
-	URL       string `json:"url,omitempty"`       // image URL (not yet supported by Anthropic)
+	Type      string `json:"type"`           // "base64" or "url"
+	MediaType string `json:"media_type"`     // "image/jpeg", "image/png", "image/gif", "image/webp"
+	Data      string `json:"data,omitempty"` // base64 encoded data
+	URL       string `json:"url,omitempty"`  // image URL (not yet supported by Anthropic)
 }
 
 // MultiModalMessage represents a message with multiple content blocks.

@@ -26,14 +26,14 @@ func NewCostTracker() *CostTracker {
 // RecordUsage records token usage and calculates cost.
 func (t *CostTracker) RecordUsage(model string, promptTokens, completionTokens int) float64 {
 	cost := CalculateCost(model, promptTokens, completionTokens)
-	
+
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	
+
 	t.costs[model] += cost
 	t.tokens[model] += promptTokens + completionTokens
 	t.calls[model]++
-	
+
 	return cost
 }
 
@@ -41,7 +41,7 @@ func (t *CostTracker) RecordUsage(model string, promptTokens, completionTokens i
 func (t *CostTracker) GetTotalCost() float64 {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	
+
 	total := 0.0
 	for _, cost := range t.costs {
 		total += cost
@@ -53,7 +53,7 @@ func (t *CostTracker) GetTotalCost() float64 {
 func (t *CostTracker) GetModelCost(model string) float64 {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	
+
 	return t.costs[model]
 }
 
@@ -61,7 +61,7 @@ func (t *CostTracker) GetModelCost(model string) float64 {
 func (t *CostTracker) GetModelTokens(model string) int {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	
+
 	return t.tokens[model]
 }
 
@@ -69,7 +69,7 @@ func (t *CostTracker) GetModelTokens(model string) int {
 func (t *CostTracker) GetModelCalls(model string) int {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	
+
 	return t.calls[model]
 }
 
@@ -77,29 +77,29 @@ func (t *CostTracker) GetModelCalls(model string) int {
 func (t *CostTracker) GetReport() CostReport {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	
+
 	models := make([]ModelCost, 0, len(t.costs))
 	totalCost := 0.0
 	totalTokens := 0
 	totalCalls := 0
-	
+
 	for model := range t.costs {
 		cost := t.costs[model]
 		tokens := t.tokens[model]
 		calls := t.calls[model]
-		
+
 		models = append(models, ModelCost{
 			Model:  model,
 			Cost:   cost,
 			Tokens: tokens,
 			Calls:  calls,
 		})
-		
+
 		totalCost += cost
 		totalTokens += tokens
 		totalCalls += calls
 	}
-	
+
 	return CostReport{
 		Models:      models,
 		TotalCost:   totalCost,
@@ -113,7 +113,7 @@ func (t *CostTracker) GetReport() CostReport {
 func (t *CostTracker) Reset() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	
+
 	t.costs = make(map[string]float64)
 	t.tokens = make(map[string]int)
 	t.calls = make(map[string]int)
@@ -138,11 +138,11 @@ type ModelCost struct {
 
 // BudgetLimiter enforces cost budgets.
 type BudgetLimiter struct {
-	tracker    *CostTracker
-	maxCost    float64
+	tracker        *CostTracker
+	maxCost        float64
 	alertThreshold float64
-	onAlert    func(current, max float64)
-	onExceeded func(current, max float64)
+	onAlert        func(current, max float64)
+	onExceeded     func(current, max float64)
 }
 
 // NewBudgetLimiter creates a new budget limiter.
@@ -168,7 +168,7 @@ func (b *BudgetLimiter) SetExceededCallback(fn func(current, max float64)) {
 func (b *BudgetLimiter) RecordUsage(model string, promptTokens, completionTokens int) (float64, error) {
 	cost := b.tracker.RecordUsage(model, promptTokens, completionTokens)
 	totalCost := b.tracker.GetTotalCost()
-	
+
 	// Check if budget exceeded
 	if totalCost > b.maxCost {
 		if b.onExceeded != nil {
@@ -176,12 +176,12 @@ func (b *BudgetLimiter) RecordUsage(model string, promptTokens, completionTokens
 		}
 		return cost, ErrBudgetExceeded
 	}
-	
+
 	// Check alert threshold
 	if totalCost > b.maxCost*b.alertThreshold && b.onAlert != nil {
 		b.onAlert(totalCost, b.maxCost)
 	}
-	
+
 	return cost, nil
 }
 

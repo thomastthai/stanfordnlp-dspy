@@ -16,7 +16,7 @@ func main() {
 	// Configure DSPy with OpenAI (or mock if no API key)
 	// To use real OpenAI, set the OPENAI_API_KEY environment variable
 	apiKey := os.Getenv("OPENAI_API_KEY")
-	
+
 	if apiKey != "" {
 		fmt.Println("Using OpenAI API (gpt-4o-mini)")
 		// Configure with real OpenAI

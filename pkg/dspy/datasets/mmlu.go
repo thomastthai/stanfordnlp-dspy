@@ -61,12 +61,12 @@ func NewMMLU(config MMLUConfig) *MMLU {
 	if config.CacheDir == "" {
 		config.CacheDir = filepath.Join(os.TempDir(), "dspy", "mmlu")
 	}
-	
+
 	subjects := MMLUSubjects
 	if config.FilterSubject != "" {
 		subjects = []string{config.FilterSubject}
 	}
-	
+
 	return &MMLU{
 		cacheDir:      config.CacheDir,
 		lazyLoad:      config.LazyLoad,
@@ -80,17 +80,17 @@ func NewMMLU(config MMLUConfig) *MMLU {
 func (m *MMLU) Load(ctx context.Context) ([]Example, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	if m.loaded && !m.lazyLoad {
 		return m.getAllExamples(), nil
 	}
-	
+
 	for _, subject := range m.subjects {
 		if err := m.loadSubject(ctx, subject); err != nil {
 			return nil, fmt.Errorf("failed to load subject %s: %w", subject, err)
 		}
 	}
-	
+
 	m.loaded = true
 	return m.getAllExamples(), nil
 }
@@ -103,11 +103,11 @@ func (m *MMLU) LoadSubject(ctx context.Context, subject string) ([]Example, erro
 		return examples, nil
 	}
 	m.mu.RUnlock()
-	
+
 	if err := m.loadSubject(ctx, subject); err != nil {
 		return nil, err
 	}
-	
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.examples[subject], nil
@@ -122,7 +122,7 @@ func (m *MMLU) Subjects() []string {
 func (m *MMLU) Len() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	count := 0
 	for _, examples := range m.examples {
 		count += len(examples)
@@ -135,10 +135,10 @@ func (m *MMLU) loadSubject(ctx context.Context, subject string) error {
 	// MMLU has dev, val, and test splits
 	splits := []string{"dev", "val", "test"}
 	allExamples := make([]Example, 0)
-	
+
 	for _, split := range splits {
 		cachePath := filepath.Join(m.cacheDir, subject, fmt.Sprintf("%s_%s.csv", split, subject))
-		
+
 		// Check if cached
 		if _, err := os.Stat(cachePath); err != nil {
 			// Download if not cached
@@ -147,19 +147,19 @@ func (m *MMLU) loadSubject(ctx context.Context, subject string) error {
 				continue
 			}
 		}
-		
+
 		examples, err := m.loadFromCache(cachePath, subject, split)
 		if err != nil {
 			return fmt.Errorf("failed to load %s split: %w", split, err)
 		}
-		
+
 		allExamples = append(allExamples, examples...)
 	}
-	
+
 	m.mu.Lock()
 	m.examples[subject] = allExamples
 	m.mu.Unlock()
-	
+
 	return nil
 }
 
@@ -170,7 +170,7 @@ func (m *MMLU) loadFromCache(path string, subject string, split string) ([]Examp
 		return nil, fmt.Errorf("failed to open cache file: %w", err)
 	}
 	defer file.Close()
-	
+
 	return m.parseCSV(file, subject, split)
 }
 
@@ -180,37 +180,37 @@ func (m *MMLU) download(ctx context.Context, subject string, split string, destP
 	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
-	
+
 	// URL for MMLU dataset
 	url := fmt.Sprintf("https://raw.githubusercontent.com/hendrycks/test/master/data/%s/%s_%s.csv",
 		split, split, subject)
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("download failed with status: %d", resp.StatusCode)
 	}
-	
+
 	// Save to cache
 	out, err := os.Create(destPath)
 	if err != nil {
 		return fmt.Errorf("failed to create cache file: %w", err)
 	}
 	defer out.Close()
-	
+
 	if _, err := io.Copy(out, resp.Body); err != nil {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -219,7 +219,7 @@ func (m *MMLU) download(ctx context.Context, subject string, split string, destP
 func (m *MMLU) parseCSV(r io.Reader, subject string, split string) ([]Example, error) {
 	reader := csv.NewReader(bufio.NewReader(r))
 	examples := make([]Example, 0)
-	
+
 	lineNum := 0
 	for {
 		record, err := reader.Read()
@@ -229,14 +229,14 @@ func (m *MMLU) parseCSV(r io.Reader, subject string, split string) ([]Example, e
 		if err != nil {
 			return nil, fmt.Errorf("failed to read CSV: %w", err)
 		}
-		
+
 		lineNum++
-		
+
 		// Skip if not enough fields
 		if len(record) < 6 {
 			continue
 		}
-		
+
 		question := strings.TrimSpace(record[0])
 		choices := []string{
 			strings.TrimSpace(record[1]),
@@ -245,13 +245,13 @@ func (m *MMLU) parseCSV(r io.Reader, subject string, split string) ([]Example, e
 			strings.TrimSpace(record[4]),
 		}
 		answer := strings.TrimSpace(record[5])
-		
+
 		// Convert answer letter to index (A=0, B=1, C=2, D=3)
 		answerIndex := -1
 		if len(answer) > 0 {
 			answerIndex = int(answer[0] - 'A')
 		}
-		
+
 		ex := Example{
 			ID: fmt.Sprintf("mmlu_%s_%s_%d", subject, split, lineNum),
 			Inputs: map[string]interface{}{
@@ -264,10 +264,10 @@ func (m *MMLU) parseCSV(r io.Reader, subject string, split string) ([]Example, e
 				"answer_index": answerIndex,
 			},
 		}
-		
+
 		examples = append(examples, ex)
 	}
-	
+
 	return examples, nil
 }
 
@@ -284,7 +284,7 @@ func (m *MMLU) getAllExamples() []Example {
 func (m *MMLU) Split(ratios ...float64) []Dataset {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	allExamples := m.getAllExamples()
 	ds := NewInMemoryDataset("mmlu", allExamples)
 	return ds.Split(ratios...)
@@ -294,7 +294,7 @@ func (m *MMLU) Split(ratios ...float64) []Dataset {
 func (m *MMLU) Batch(size int) [][]Example {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	allExamples := m.getAllExamples()
 	ds := NewInMemoryDataset("mmlu", allExamples)
 	return ds.Batch(size)
@@ -304,7 +304,7 @@ func (m *MMLU) Batch(size int) [][]Example {
 func (m *MMLU) Shuffle(seed int64) Dataset {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	allExamples := m.getAllExamples()
 	ds := NewInMemoryDataset("mmlu", allExamples)
 	return ds.Shuffle(seed)
@@ -314,7 +314,7 @@ func (m *MMLU) Shuffle(seed int64) Dataset {
 func (m *MMLU) Filter(predicate func(Example) bool) Dataset {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	allExamples := m.getAllExamples()
 	ds := NewInMemoryDataset("mmlu", allExamples)
 	return ds.Filter(predicate)

@@ -12,10 +12,10 @@ import (
 type RateLimiter interface {
 	// Allow checks if an operation is allowed
 	Allow() bool
-	
+
 	// Wait blocks until an operation is allowed
 	Wait(ctx context.Context) error
-	
+
 	// Limit returns the current rate limit
 	Limit() rate.Limit
 }
@@ -92,7 +92,7 @@ func (l *PerModelLimiter) GetLimiter(model string) RateLimiter {
 	if limiter, ok := l.limiters[model]; ok {
 		return limiter
 	}
-	
+
 	// Create default limiter for model
 	limiter := NewTokenBucketLimiter(l.defaults.rate, l.defaults.burst)
 	l.limiters[model] = limiter
@@ -111,18 +111,18 @@ func (l *PerModelLimiter) Wait(ctx context.Context, model string) error {
 
 // RetryConfig configures retry behavior with rate limiting.
 type RetryConfig struct {
-	MaxRetries      int
-	InitialBackoff  time.Duration
-	MaxBackoff      time.Duration
+	MaxRetries        int
+	InitialBackoff    time.Duration
+	MaxBackoff        time.Duration
 	BackoffMultiplier float64
 }
 
 // DefaultRetryConfig returns default retry configuration.
 func DefaultRetryConfig() RetryConfig {
 	return RetryConfig{
-		MaxRetries:      3,
-		InitialBackoff:  time.Second,
-		MaxBackoff:      30 * time.Second,
+		MaxRetries:        3,
+		InitialBackoff:    time.Second,
+		MaxBackoff:        30 * time.Second,
 		BackoffMultiplier: 2.0,
 	}
 }
@@ -131,13 +131,13 @@ func DefaultRetryConfig() RetryConfig {
 func RetryWithBackoff(ctx context.Context, config RetryConfig, fn func() error) error {
 	var err error
 	backoff := config.InitialBackoff
-	
+
 	for attempt := 0; attempt <= config.MaxRetries; attempt++ {
 		err = fn()
 		if err == nil {
 			return nil
 		}
-		
+
 		// Check if we should retry
 		if attempt < config.MaxRetries {
 			select {
@@ -152,6 +152,6 @@ func RetryWithBackoff(ctx context.Context, config RetryConfig, fn func() error) 
 			}
 		}
 	}
-	
+
 	return err
 }

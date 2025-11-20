@@ -63,9 +63,9 @@ func NewClient(opts ClientOptions) (*Client, error) {
 
 // GenerateContentRequest represents a Gemini API request.
 type GenerateContentRequest struct {
-	Contents         []Content               `json:"contents"`
-	GenerationConfig *GenerationConfig       `json:"generationConfig,omitempty"`
-	SafetySettings   []SafetySetting         `json:"safetySettings,omitempty"`
+	Contents         []Content         `json:"contents"`
+	GenerationConfig *GenerationConfig `json:"generationConfig,omitempty"`
+	SafetySettings   []SafetySetting   `json:"safetySettings,omitempty"`
 }
 
 // Content represents message content.
@@ -97,9 +97,9 @@ type SafetySetting struct {
 
 // GenerateContentResponse represents a Gemini API response.
 type GenerateContentResponse struct {
-	Candidates     []Candidate       `json:"candidates"`
-	PromptFeedback *PromptFeedback   `json:"promptFeedback,omitempty"`
-	UsageMetadata  *UsageMetadata    `json:"usageMetadata,omitempty"`
+	Candidates     []Candidate     `json:"candidates"`
+	PromptFeedback *PromptFeedback `json:"promptFeedback,omitempty"`
+	UsageMetadata  *UsageMetadata  `json:"usageMetadata,omitempty"`
 }
 
 // Candidate represents a generation candidate.

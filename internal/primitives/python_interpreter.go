@@ -49,7 +49,7 @@ func NewPythonInterpreter(opts PythonOptions) *PythonInterpreter {
 	if opts.MaxOutputSize == 0 {
 		opts.MaxOutputSize = 1024 * 1024
 	}
-	
+
 	return &PythonInterpreter{
 		timeout:        opts.Timeout,
 		pythonPath:     opts.PythonPath,
@@ -67,40 +67,40 @@ func (pi *PythonInterpreter) Execute(ctx context.Context, code string) (string, 
 			return "", fmt.Errorf("code validation failed: %w", err)
 		}
 	}
-	
+
 	// Create context with timeout
 	execCtx, cancel := context.WithTimeout(ctx, pi.timeout)
 	defer cancel()
-	
+
 	// Prepare Python command
 	cmd := exec.CommandContext(execCtx, pi.pythonPath, "-c", code)
-	
+
 	if pi.workingDir != "" {
 		cmd.Dir = pi.workingDir
 	}
-	
+
 	// Capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	
+
 	// Execute command
 	err := cmd.Run()
-	
+
 	// Check for timeout
 	if execCtx.Err() == context.DeadlineExceeded {
 		return "", fmt.Errorf("execution timed out after %v", pi.timeout)
 	}
-	
+
 	// Get output
 	output := stdout.String()
 	errorOutput := stderr.String()
-	
+
 	// Check output size
 	if len(output) > pi.maxOutputSize {
 		output = output[:pi.maxOutputSize] + "\n... (output truncated)"
 	}
-	
+
 	// Return error if execution failed
 	if err != nil {
 		if errorOutput != "" {
@@ -108,7 +108,7 @@ func (pi *PythonInterpreter) Execute(ctx context.Context, code string) (string, 
 		}
 		return output, fmt.Errorf("execution failed: %w", err)
 	}
-	
+
 	return output, nil
 }
 
@@ -144,26 +144,26 @@ print("__RESULT__")
 if _result is not None:
     print(_result)
 `, fmt.Sprintf("%q", code))
-	
+
 	fullOutput, err := pi.Execute(ctx, wrappedCode)
 	if err != nil {
 		return "", "", err
 	}
-	
+
 	// Parse output and result
 	parts := strings.Split(fullOutput, "__OUTPUT__")
 	if len(parts) < 2 {
 		return fullOutput, "", nil
 	}
-	
+
 	parts = strings.Split(parts[1], "__RESULT__")
 	if len(parts) < 2 {
 		return strings.TrimSpace(parts[0]), "", nil
 	}
-	
+
 	output = strings.TrimSpace(parts[0])
 	result = strings.TrimSpace(parts[1])
-	
+
 	return output, result, nil
 }
 
@@ -184,14 +184,14 @@ func (pi *PythonInterpreter) validateCode(code string) error {
 		"subprocess",
 		"socket",
 	}
-	
+
 	lowerCode := strings.ToLower(code)
 	for _, danger := range dangerous {
 		if strings.Contains(lowerCode, strings.ToLower(danger)) {
 			return fmt.Errorf("potentially dangerous operation detected: %s", danger)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -200,37 +200,37 @@ func (pi *PythonInterpreter) ExecuteFile(ctx context.Context, filePath string, a
 	// Create context with timeout
 	execCtx, cancel := context.WithTimeout(ctx, pi.timeout)
 	defer cancel()
-	
+
 	// Prepare command
 	cmdArgs := append([]string{filePath}, args...)
 	cmd := exec.CommandContext(execCtx, pi.pythonPath, cmdArgs...)
-	
+
 	if pi.workingDir != "" {
 		cmd.Dir = pi.workingDir
 	}
-	
+
 	// Capture output
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	
+
 	// Execute
 	err := cmd.Run()
-	
+
 	// Check for timeout
 	if execCtx.Err() == context.DeadlineExceeded {
 		return "", fmt.Errorf("execution timed out after %v", pi.timeout)
 	}
-	
+
 	// Get output
 	output := stdout.String()
 	errorOutput := stderr.String()
-	
+
 	// Check output size
 	if len(output) > pi.maxOutputSize {
 		output = output[:pi.maxOutputSize] + "\n... (output truncated)"
 	}
-	
+
 	// Return error if execution failed
 	if err != nil {
 		if errorOutput != "" {
@@ -238,7 +238,7 @@ func (pi *PythonInterpreter) ExecuteFile(ctx context.Context, filePath string, a
 		}
 		return output, fmt.Errorf("execution failed: %w", err)
 	}
-	
+
 	return output, nil
 }
 
@@ -246,7 +246,7 @@ func (pi *PythonInterpreter) ExecuteFile(ctx context.Context, filePath string, a
 func (pi *PythonInterpreter) CheckPythonAvailable() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	cmd := exec.CommandContext(ctx, pi.pythonPath, "--version")
 	err := cmd.Run()
 	return err == nil

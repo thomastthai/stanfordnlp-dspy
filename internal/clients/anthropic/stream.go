@@ -16,9 +16,9 @@ import (
 
 // StreamChunk represents a streaming response chunk from Anthropic.
 type StreamChunk struct {
-	Type  string          `json:"type"`
-	Index int             `json:"index,omitempty"`
-	Delta *StreamDelta    `json:"delta,omitempty"`
+	Type    string             `json:"type"`
+	Index   int                `json:"index,omitempty"`
+	Delta   *StreamDelta       `json:"delta,omitempty"`
 	Message *AnthropicResponse `json:"message,omitempty"`
 }
 

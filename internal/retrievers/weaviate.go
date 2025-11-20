@@ -12,12 +12,12 @@ import (
 // Weaviate provides retrieval using Weaviate vector database.
 type Weaviate struct {
 	*BaseRetriever
-	url             string
-	apiKey          string
-	collectionName  string
-	textKey         string
-	client          *http.Client
-	headers         map[string]string
+	url            string
+	apiKey         string
+	collectionName string
+	textKey        string
+	client         *http.Client
+	headers        map[string]string
 }
 
 // WeaviateOptions configures the Weaviate retriever.
@@ -62,12 +62,12 @@ func (w *Weaviate) Retrieve(ctx context.Context, query string, k int) ([]string,
 	if err != nil {
 		return nil, err
 	}
-	
+
 	results := make([]string, len(docs))
 	for i, doc := range docs {
 		results[i] = doc.Content
 	}
-	
+
 	return results, nil
 }
 
@@ -96,7 +96,7 @@ func (w *Weaviate) hybridSearch(ctx context.Context, query string, k int) ([]Doc
 			}
 		}
 	}`, w.collectionName, w.escapeString(query), k, w.textKey)
-	
+
 	return w.executeGraphQL(ctx, graphQLQuery)
 }
 
@@ -119,7 +119,7 @@ func (w *Weaviate) VectorSearch(ctx context.Context, query string, k int) ([]Doc
 			}
 		}
 	}`, w.collectionName, w.escapeString(query), k, w.textKey)
-	
+
 	return w.executeGraphQL(ctx, graphQLQuery)
 }
 
@@ -128,43 +128,43 @@ func (w *Weaviate) executeGraphQL(ctx context.Context, query string) ([]Document
 	payload := map[string]string{
 		"query": query,
 	}
-	
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal query: %w", err)
 	}
-	
+
 	url := fmt.Sprintf("%s/v1/graphql", w.url)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	if w.apiKey != "" {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", w.apiKey))
 	}
-	
+
 	// Add custom headers
 	for k, v := range w.headers {
 		req.Header.Set(k, v)
 	}
-	
+
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	return w.parseGraphQLResponse(result)
 }
 
@@ -174,33 +174,33 @@ func (w *Weaviate) parseGraphQLResponse(response map[string]interface{}) ([]Docu
 	if !ok {
 		return nil, fmt.Errorf("invalid response format: missing data field")
 	}
-	
+
 	get, ok := data["Get"].(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("invalid response format: missing Get field")
 	}
-	
+
 	collection, ok := get[w.collectionName].([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("invalid response format: missing collection field")
 	}
-	
+
 	docs := make([]Document, 0, len(collection))
 	for _, item := range collection {
 		obj, ok := item.(map[string]interface{})
 		if !ok {
 			continue
 		}
-		
+
 		doc := Document{
 			Metadata: make(map[string]interface{}),
 		}
-		
+
 		// Extract text content
 		if text, ok := obj[w.textKey].(string); ok {
 			doc.Content = text
 		}
-		
+
 		// Extract additional metadata
 		if additional, ok := obj["_additional"].(map[string]interface{}); ok {
 			if score, ok := additional["score"].(float64); ok {
@@ -213,17 +213,17 @@ func (w *Weaviate) parseGraphQLResponse(response map[string]interface{}) ([]Docu
 				doc.Metadata["distance"] = distance
 			}
 		}
-		
+
 		// Store all fields as metadata
 		for k, v := range obj {
 			if k != w.textKey && k != "_additional" {
 				doc.Metadata[k] = v
 			}
 		}
-		
+
 		docs = append(docs, doc)
 	}
-	
+
 	return docs, nil
 }
 
@@ -242,38 +242,38 @@ func (w *Weaviate) CreateObject(ctx context.Context, properties map[string]inter
 		"class":      w.collectionName,
 		"properties": properties,
 	}
-	
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal object: %w", err)
 	}
-	
+
 	url := fmt.Sprintf("%s/v1/objects", w.url)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	req.Header.Set("Content-Type", "application/json")
 	if w.apiKey != "" {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", w.apiKey))
 	}
-	
+
 	resp, err := w.client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", fmt.Errorf("failed to decode response: %w", err)
 	}
-	
+
 	id, _ := result["id"].(string)
 	return id, nil
 }

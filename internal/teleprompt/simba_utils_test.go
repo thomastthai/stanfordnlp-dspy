@@ -129,11 +129,11 @@ func TestEpsilonGreedy(t *testing.T) {
 
 func TestImportanceWeight(t *testing.T) {
 	tests := []struct {
-		name                 string
-		probability          float64
-		samplingProbability  float64
-		wantWeight           float64
-		wantPanic            bool
+		name                string
+		probability         float64
+		samplingProbability float64
+		wantWeight          float64
+		wantPanic           bool
 	}{
 		{
 			name:                "equal probabilities",

@@ -180,7 +180,7 @@ func (c *Client) Call(ctx context.Context, request *clients.Request, deploymentN
 
 	// Check for errors
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Azure OpenAI API error (status %d): %s", resp.StatusCode, string(body))
+		return nil, parseAzureError(resp.StatusCode, body)
 	}
 
 	// Parse response
@@ -213,4 +213,44 @@ func (c *Client) Call(ctx context.Context, request *clients.Request, deploymentN
 	}
 
 	return response, nil
+}
+
+// parseAzureError parses an Azure OpenAI error response.
+func parseAzureError(statusCode int, body []byte) error {
+	var errResp AzureErrorResponse
+	if err := json.Unmarshal(body, &errResp); err != nil {
+		// Could not parse error response, return generic error
+		return clients.NewClientError(statusCode, string(body), "azure_error", isRetryableStatus(statusCode))
+	}
+
+	// Determine if error is retryable
+	retryable := isRetryableStatus(statusCode) || isRetryableErrorCode(errResp.Error.Code)
+
+	return clients.NewClientError(
+		statusCode,
+		errResp.Error.Message,
+		errResp.Error.Code,
+		retryable,
+	)
+}
+
+// isRetryableStatus checks if an HTTP status code indicates a retryable error.
+func isRetryableStatus(statusCode int) bool {
+	// Rate limits and server errors are retryable
+	return statusCode == 429 || (statusCode >= 500 && statusCode < 600)
+}
+
+// isRetryableErrorCode checks if an Azure error code indicates a retryable error.
+func isRetryableErrorCode(code string) bool {
+	retryableCodes := map[string]bool{
+		"rate_limit_exceeded":  true,
+		"quota_exceeded":       true,
+		"insufficient_quota":   true,
+		"server_error":         true,
+		"service_unavailable":  true,
+		"timeout":              true,
+		"model_not_ready":      true,
+		"deployment_not_ready": true,
+	}
+	return retryableCodes[code]
 }

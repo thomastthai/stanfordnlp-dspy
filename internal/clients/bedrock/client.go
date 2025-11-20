@@ -130,12 +130,12 @@ func buildAnthropicRequest(request *clients.Request) ([]byte, error) {
 	}
 
 	type Request struct {
-		Messages      []Message `json:"messages"`
-		MaxTokens     int       `json:"max_tokens"`
-		Temperature   float64   `json:"temperature,omitempty"`
-		TopP          float64   `json:"top_p,omitempty"`
-		StopSequences []string  `json:"stop_sequences,omitempty"`
-		AnthropicVersion string `json:"anthropic_version"`
+		Messages         []Message `json:"messages"`
+		MaxTokens        int       `json:"max_tokens"`
+		Temperature      float64   `json:"temperature,omitempty"`
+		TopP             float64   `json:"top_p,omitempty"`
+		StopSequences    []string  `json:"stop_sequences,omitempty"`
+		AnthropicVersion string    `json:"anthropic_version"`
 	}
 
 	messages := make([]Message, 0, len(request.Messages))
@@ -183,8 +183,8 @@ func buildTitanRequest(request *clients.Request) ([]byte, error) {
 	}
 
 	type Request struct {
-		InputText             string                `json:"inputText"`
-		TextGenerationConfig  TextGenerationConfig  `json:"textGenerationConfig"`
+		InputText            string               `json:"inputText"`
+		TextGenerationConfig TextGenerationConfig `json:"textGenerationConfig"`
 	}
 
 	// Build input text from messages or prompt
@@ -216,10 +216,10 @@ func buildTitanRequest(request *clients.Request) ([]byte, error) {
 // buildLlamaRequest builds a request for Meta Llama models.
 func buildLlamaRequest(request *clients.Request) ([]byte, error) {
 	type Request struct {
-		Prompt      string   `json:"prompt"`
-		Temperature float64  `json:"temperature,omitempty"`
-		TopP        float64  `json:"top_p,omitempty"`
-		MaxGenLen   int      `json:"max_gen_len,omitempty"`
+		Prompt      string  `json:"prompt"`
+		Temperature float64 `json:"temperature,omitempty"`
+		TopP        float64 `json:"top_p,omitempty"`
+		MaxGenLen   int     `json:"max_gen_len,omitempty"`
 	}
 
 	// Build prompt from messages or use direct prompt
